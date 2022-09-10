@@ -2,6 +2,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+import config
+
 
 class DiscordClient(commands.Bot):
     def __init__(self, prefix="!"):
@@ -32,9 +34,11 @@ class Drop:
 
 
 class Mints(app_commands.Group):
-
     @app_commands.command(name="add", description="Add mint to mints list")
     async def add_mint(self, interaction: discord.Interaction, drop_name: str, link: str = None, timestamp: str = None):
+        if not check_admin(interaction.user.id):
+            await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+            return
         if any(drop_name.lower().strip() == drop.name.lower() for drop in mints_list):
             await interaction.response.send_message(f"{drop_name} already exist!")
         else:
@@ -54,6 +58,9 @@ class Mints(app_commands.Group):
     @app_commands.command(name="change_info", description="Change mint [name, link or timestamp]")
     async def change_mint_info(self, interaction: discord.Interaction, mint_name: str, change_type: str,
                                new_value: str):
+        if not check_admin(interaction.user.id):
+            await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+            return
         change_type = change_type.lower().strip()
         new_value = new_value.lower().strip()
         if change_type not in ["name", "link", "timestamp"]:
@@ -70,6 +77,10 @@ class Mints(app_commands.Group):
                 await interaction.response.send_message(f"Successfully changed {change_type} to {new_value}",
                                                         ephemeral=True)
                 return
+
+
+def check_admin(member_id):
+    return member_id in config.ADMINS_IDS
 
 
 mints_list = []
