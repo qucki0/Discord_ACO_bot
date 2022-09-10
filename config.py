@@ -1,2 +1,2 @@
-TOKEN = "MTAxNzg0NzkzMzk0MjYzNjU1NA.GNshXQ.BBiv-KKgcTHwIq9G3toGT48FS_koc9yfqUScAA"
+TOKEN = "your_token"
 PREFIX = "!"
