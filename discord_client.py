@@ -36,6 +36,10 @@ class Drop:
             data += f"{self.link.strip()}"
         return data
 
+    def get_wallets_by_name(self, member_name):
+        if member_name in self.wallets:
+            return self.wallets[member_name]
+
 
 class ACOMember:
     def __init__(self, member: discord.Member):
@@ -69,30 +73,35 @@ class Mints(app_commands.Group):
         if not check_admin(interaction.user.id):
             await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
             return
+
         change_type = change_type.lower().strip()
         new_value = new_value.lower().strip()
         if change_type not in ["name", "link", "timestamp"]:
             await interaction.response.send_message("Invalid change type!", ephemeral=True)
             return
-        for mint in mints_list:
-            if mint.name.lower() == mint_name.lower().strip():
-                if change_type == "name":
-                    mint.name = new_value
-                if change_type == "link":
-                    mint.link = new_value
-                if change_type == "timestamp":
-                    mint.timestamp = new_value
-                await interaction.response.send_message(f"Successfully changed {change_type} to {new_value}",
-                                                        ephemeral=True)
+
+        mint = get_mint_by_name(mint_name)
+        if mint is None:
+            await interaction.response.send_message(f"There are no releases named as {mint_name}")
+            return
+
+        if change_type == "name":
+            mint.name = new_value
+        if change_type == "link":
+            mint.link = new_value
+        if change_type == "timestamp":
+            mint.timestamp = new_value
+        await interaction.response.send_message(f"Successfully changed {change_type} to {new_value}",
+                                                ephemeral=True)
 
     @app_commands.command(name="request_mint", description="Get actual mints")
     async def request_mint(self, interaction: discord.Interaction, drop_name: str, link: str = None,
-                           time: str = None):
+                           mint_time: str = None):
         admins_to_ping = ""
         for admin_id in config.ADMINS_IDS:
             admins_to_ping += "<@" + str(admin_id) + "> "
         await interaction.response.send_message(
-            f"{admins_to_ping}, please add `{drop_name}`, link:`{link}`, time: `{time}`")
+            f"{admins_to_ping}, please add `{drop_name}`, link:`{link}`, time: `{mint_time}`")
 
     @app_commands.command(name="delete", description="Delete mint from mints list")
     async def delete_mint(self, interaction: discord.Interaction, drop_name: str):
@@ -112,22 +121,31 @@ class Mints(app_commands.Group):
 class Aco(app_commands.Group):
     @app_commands.command(name="send_wallets", description="Send wallets separeted by commas for chosen release")
     async def send_wallet(self, interaction: discord.Interaction, release_name: str, wallets: str):
-        release_name = release_name.strip().lower()
         member_name = interaction.user.name
         if not len(wallets):
             await interaction.response.send_message("Please input wallets keys")
             return
 
         wallets = [wallet.strip() for wallet in wallets.split(",")]
-        for mint in mints_list:
-            if mint.name.lower() == release_name:
-                if member_name not in mint.wallets:
-                    mint.wallets[member_name] = []
-                mint.wallets[member_name].extend(wallets)
-                await interaction.response.send_message(f"Successfully sent {len(wallets)} wallets")
-                return
+
+        mint = get_mint_by_name(release_name)
+        if mint is not None:
+            if member_name not in mint.wallets:
+                mint.wallets[member_name] = []
+            mint.wallets[member_name].extend(wallets)
+            await interaction.response.send_message(f"Successfully sent {len(wallets)} wallets")
         else:
             await interaction.response.send_message(f"There are no releases named as {release_name}")
+
+    @app_commands.command(name="check_wallets", description="Check the wallets that you sent")
+    async def check_wallets(self, interaction: discord.Interaction, release_name: str):
+        mint = get_mint_by_name(release_name)
+        member_name = interaction.user.name
+        message_to_send = f"{member_name} wallets for `{mint.name}`:\n```"
+        for wallet in mint.get_wallets_by_name(member_name):
+            message_to_send += f"{wallet}\n"
+        message_to_send += "```"
+        await interaction.response.send_message(message_to_send)
 
     @app_commands.command(name="get_wallets", description="Get all wallets for specific release")
     async def get_wallets(self, interaction: discord.Interaction, release_name: str):
@@ -135,18 +153,16 @@ class Aco(app_commands.Group):
             await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
             return
 
-        release_name = release_name.strip().lower()
-
-        if not any(release_name == mint.name.lower() for mint in mints_list):
+        mint = get_mint_by_name(release_name)
+        if mint is None:
             await interaction.response.send_message(f"There are no releases named as {release_name}")
             return
 
         wallets = ""
-        for mint in mints_list:
-            if mint.name.lower() == release_name:
-                for member in mint.wallets:
-                    for i, wallet in enumerate(mint.wallets[member], 1):
-                        wallets += f"{member.split('#')[0]}{i}:{wallet}\n"
+
+        for member in mint.wallets:
+            for i, wallet in enumerate(mint.wallets[member], 1):
+                wallets += f"{member.split}{i}:{wallet}\n"
 
         timestamp = int(time.time())
         file_name = os.path.join("wallets_to_send", f"{release_name}{timestamp}.txt")
@@ -158,6 +174,13 @@ class Aco(app_commands.Group):
 
 def check_admin(member_id):
     return member_id in config.ADMINS_IDS
+
+
+def get_mint_by_name(release_name):
+    release_name = release_name.strip().lower()
+    for mint in mints_list:
+        if mint.name.lower() == release_name:
+            return mint
 
 
 def add_member(member: discord.Member):
