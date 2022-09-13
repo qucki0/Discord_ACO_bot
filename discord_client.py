@@ -1,3 +1,4 @@
+import csv
 import os
 import time
 
@@ -40,6 +41,18 @@ class Drop:
         if member_name in self.wallets:
             return self.wallets[member_name]
 
+    def get_as_embed(self):
+        description = ""
+        if self.link is not None:
+            description += f":green_circle:{self.link}\n\n"
+        if self.timestamp is not None:
+            description += f":clock10:Time: <t:{self.timestamp}>"
+
+        embed = discord.Embed(title=f":bell:{self.name}", colour=discord.Colour.dark_grey(),
+                              description=description)
+        embed.set_footer(text="Take your ACO in ticket")
+        return embed
+
 
 class ACOMember:
     def __init__(self, member: discord.Member):
@@ -48,6 +61,7 @@ class ACOMember:
 
 
 class Mints(app_commands.Group):
+
     @app_commands.command(name="add", description="Add mint to mints list")
     async def add_mint(self, interaction: discord.Interaction, drop_name: str, link: str = None, timestamp: str = None):
         if not check_admin(interaction.user.id):
@@ -56,7 +70,9 @@ class Mints(app_commands.Group):
         if any(drop_name.lower().strip() == drop.name.lower() for drop in mints_list):
             await interaction.response.send_message(f"{drop_name} already exist!", ephemeral=True)
         else:
-            mints_list.append(Drop(drop_name, timestamp, link))
+            mint = Drop(drop_name, timestamp, link)
+            mints_list.append(mint)
+            await interaction.client.get_channel(1019024498571350086).send("New mint found", embed=mint.get_as_embed())
             await interaction.response.send_message(f"Added `{drop_name}` to drop list!", ephemeral=True)
 
     @app_commands.command(name="get_all", description="Get actual mints")
@@ -91,6 +107,8 @@ class Mints(app_commands.Group):
             mint.link = new_value
         if change_type == "timestamp":
             mint.timestamp = new_value
+        await interaction.client.get_channel(1019024498571350086).send("Something changed, check it!",
+                                                                       embed=mint.get_as_embed())
         await interaction.response.send_message(f"Successfully changed {change_type} to {new_value}",
                                                 ephemeral=True)
 
@@ -119,8 +137,8 @@ class Mints(app_commands.Group):
 
 
 class Aco(app_commands.Group):
-    @app_commands.command(name="send_wallets", description="Send wallets separeted by commas for chosen release")
-    async def send_wallet(self, interaction: discord.Interaction, release_name: str, wallets: str):
+    @app_commands.command(name="send_wallets", description="Send wallets separated by commas for chosen release")
+    async def send_wallets(self, interaction: discord.Interaction, release_name: str, wallets: str):
         member_name = interaction.user.name
         if not len(wallets):
             await interaction.response.send_message("Please input wallets keys")
@@ -159,17 +177,24 @@ class Aco(app_commands.Group):
             return
 
         wallets = ""
-
+        wallets_as_dict = []
         for member in mint.wallets:
             for i, wallet in enumerate(mint.wallets[member], 1):
-                wallets += f"{member.split}{i}:{wallet}\n"
+                wallets += f"{member}{i}:{wallet}\n"
+                wallets_as_dict.append({"ALIAS": f"{member}{i}",
+                                        "PRIVATE_KEY": wallet})
 
         timestamp = int(time.time())
-        file_name = os.path.join("wallets_to_send", f"{release_name}{timestamp}.txt")
-        with open(file_name, "w") as file:
+        txt_file_name = os.path.join("wallets_to_send", f"{release_name}{timestamp}.txt")
+        csv_file_name = os.path.join("wallets_to_send", f"{release_name}{timestamp}.csv")
+        with open(txt_file_name, "w") as file:
             file.write(wallets)
+        with open(csv_file_name, "w", newline='') as csv_file:
+            csv_writer = csv.DictWriter(csv_file, fieldnames=wallets_as_dict[0].keys())
+            csv_writer.writeheader()
+            csv_writer.writerows(wallets_as_dict)
         time.sleep(1)
-        await interaction.response.send_message(file=discord.File(file_name))
+        await interaction.response.send_message(files=[discord.File(txt_file_name), discord.File(csv_file_name)])
 
 
 def check_admin(member_id):
