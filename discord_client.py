@@ -159,11 +159,30 @@ class Aco(app_commands.Group):
     async def check_wallets(self, interaction: discord.Interaction, release_name: str):
         mint = get_mint_by_name(release_name)
         member_name = interaction.user.name
-        message_to_send = f"{member_name} wallets for `{mint.name}`:\n```"
+        message_to_send = f"{member_name} wallets for `{mint.name}`:\n```\n"
+        if member_name not in mint.wallets:
+            await interaction.response.send_message(message_to_send + "Nothing\n```\n")
+            return
         for wallet in mint.get_wallets_by_name(member_name):
             message_to_send += f"{wallet}\n"
         message_to_send += "```"
         await interaction.response.send_message(message_to_send)
+
+    @app_commands.command(name="delete_wallets", description="Delete wallets separated by commas for chosen release")
+    async def delete_wallets(self, interaction: discord.Interaction, release_name: str, wallets: str):
+        mint = get_mint_by_name(release_name)
+        member_name = interaction.user.name
+        wallets_to_delete = [wallet.strip() for wallet in wallets.split(",")]
+        counter = 0
+        print(mint.wallets, wallets_to_delete)
+        for wallet in reversed(mint.wallets[member_name]):
+            if wallet in wallets_to_delete:
+                print(wallet)
+                mint.wallets[member_name].remove(wallet)
+                counter += 1
+            else:
+                print(wallet, mint.wallets, wallets_to_delete)
+        await interaction.response.send_message(f"Successfully deleted {counter} wallets")
 
     @app_commands.command(name="get_wallets", description="Get all wallets for specific release")
     async def get_wallets(self, interaction: discord.Interaction, release_name: str):
