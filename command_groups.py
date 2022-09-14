@@ -28,11 +28,12 @@ class Mints(app_commands.Group):
 
     @app_commands.command(name="get_all", description="Get actual mints")
     async def get_mints(self, interaction: discord.Interaction):
-        data_to_send = ""
-        for i, drop in enumerate(mints_list, 1):
-            data_to_send += f"{i} {drop.get_drop_data()}\n\n"
-        data_to_send += "**Let us know if we lost something. Just use `/mints request_mint` for it!**"
-        await interaction.response.send_message(data_to_send)
+        data_to_send = [mint.get_as_embed() for mint in mints_list]
+        message_to_send = "**Let us know if we lost something. Just use `/mints request_mint` for it!**"
+        await interaction.response.send_message(message_to_send, embeds=data_to_send[:min(10, len(data_to_send))])
+        for i in range(1, len(data_to_send) // 10 + 1):
+            await interaction.client.get_channel(interaction.channel_id).send(
+                embeds=data_to_send[10 * i:min(10 * (i + 1), len(data_to_send))])
 
     @app_commands.command(name="change_info", description="Change mint [name, link or timestamp]")
     async def change_mint_info(self, interaction: discord.Interaction, mint_name: str, change_type: str,
