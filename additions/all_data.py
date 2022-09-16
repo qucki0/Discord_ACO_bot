@@ -18,3 +18,4 @@ def get_list_from_json(file_name, inner_class):
 
 mints_list = get_list_from_json("mints_list.json", Drop)
 aco_members = get_list_from_json("aco_members.json", ACOMember)
+payments = get_list_from_json("payments.json", Drop)

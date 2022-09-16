@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from command_groups import Mints, Aco, Admin
+from command_groups import Mints, Aco, Admin, Payment
 
 
 class DiscordClient(commands.Bot):
@@ -11,6 +11,7 @@ class DiscordClient(commands.Bot):
         self.tree.add_command(Mints())
         self.tree.add_command(Aco())
         self.tree.add_command(Admin())
+        self.tree.add_command(Payment())
 
     async def on_ready(self):
         if not self.synced:
