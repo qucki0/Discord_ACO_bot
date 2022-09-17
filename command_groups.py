@@ -6,38 +6,40 @@ import discord
 from discord import app_commands
 
 import config
-from additions.all_data import mints_list, aco_members, payments
+from additions.all_data import actual_mints, aco_members, all_mints
 from additions.classes import Drop
-from additions.functions import check_admin, get_mint_by_id, save_json, get_data_by_id_from_list, add_member
+from additions.functions import check_admin, get_mint_by_id, save_json, get_data_by_id_from_list, add_member, \
+    get_member_name_by_id
 
 
 class Mints(app_commands.Group):
 
     @app_commands.command(name="add", description="Add mint to mints list")
-    async def add_mint(self, interaction: discord.Interaction, drop_name: str, link: str = None, timestamp: str = None):
+    async def add_mint(self, interaction: discord.Interaction, release_id: str, link: str = None,
+                       timestamp: str = None):
         if not check_admin(interaction.user.id):
             await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
             return
-        if any(drop_name.lower().strip() == drop.id.lower() for drop in mints_list):
-            await interaction.response.send_message(f"{drop_name} already exist!", ephemeral=True)
+        if any(release_id.lower().strip() == drop.id.lower() for drop in actual_mints):
+            await interaction.response.send_message(f"{release_id} already exist!", ephemeral=True)
         else:
-            mint = Drop(drop_name, timestamp, link)
-            mints_list.append(mint)
-            payments.append(mint)
+            mint = Drop(release_id, timestamp, link)
+            actual_mints.append(mint)
+            all_mints.append(mint)
             await interaction.client.get_channel(1019024498571350086).send("New mint found", embed=mint.get_as_embed())
-            await interaction.response.send_message(f"Added `{drop_name}` to drop list!", ephemeral=True)
+            await interaction.response.send_message(f"Added `{release_id}` to drop list!", ephemeral=True)
 
-    @app_commands.command(name="get_all", description="Get actual mints")
+    @app_commands.command(name="get-all", description="Get actual mints")
     async def get_mints(self, interaction: discord.Interaction):
-        data_to_send = [mint.get_as_embed() for mint in mints_list]
+        data_to_send = [mint.get_as_embed() for mint in actual_mints]
         message_to_send = "**Let us know if we lost something. Just use `/mints request` for it!**"
         await interaction.response.send_message(message_to_send, embeds=data_to_send[:min(10, len(data_to_send))])
         for i in range(1, len(data_to_send) // 10 + 1):
             await interaction.client.get_channel(interaction.channel_id).send(
                 embeds=data_to_send[10 * i:min(10 * (i + 1), len(data_to_send))])
 
-    @app_commands.command(name="change_info", description="Change mint [id, link or timestamp]")
-    async def change_mint_info(self, interaction: discord.Interaction, mint_id: str, change_type: str,
+    @app_commands.command(name="change-info", description="Change mint [id, link or timestamp]")
+    async def change_mint_info(self, interaction: discord.Interaction, release_id: str, change_type: str,
                                new_value: str):
         if not check_admin(interaction.user.id):
             await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
@@ -49,9 +51,9 @@ class Mints(app_commands.Group):
             await interaction.response.send_message("Invalid change type!", ephemeral=True)
             return
 
-        mint = get_mint_by_id(mint_id)
+        mint = get_mint_by_id(release_id)
         if mint is None:
-            await interaction.response.send_message(f"There are no releases named as {mint_id}")
+            await interaction.response.send_message(f"There are no releases named as {release_id}")
             return
 
         if change_type == "id":
@@ -66,32 +68,32 @@ class Mints(app_commands.Group):
                                                 ephemeral=True)
 
     @app_commands.command(name="request", description="Create request to add mint")
-    async def request_mint(self, interaction: discord.Interaction, drop_name: str, link: str = None,
+    async def request_mint(self, interaction: discord.Interaction, release_id: str, link: str = None,
                            mint_time: str = None):
         admins_to_ping = ""
         for admin_id in config.ADMINS_IDS:
             admins_to_ping += "<@" + str(admin_id) + "> "
         await interaction.response.send_message(
-            f"{admins_to_ping}, please add `{drop_name}`, link:`{link}`, time: `{mint_time}`")
+            f"{admins_to_ping}, please add `{release_id}`, link:`{link}`, time: `{mint_time}`")
 
     @app_commands.command(name="delete", description="Delete mint from mints list")
-    async def delete_mint(self, interaction: discord.Interaction, drop_name: str):
-        for i in range(len(mints_list)):
-            mint_name = mints_list[i].id
-            if drop_name.lower().strip() == mints_list[i].id.lower():
+    async def delete_mint(self, interaction: discord.Interaction, release_id: str):
+        for i in range(len(actual_mints)):
+            mint_name = actual_mints[i].id
+            if release_id.lower().strip() == mint_name.lower():
                 for file_name in os.listdir("wallets_to_send"):
                     if file_name[:len(mint_name)] == mint_name:
                         os.remove(os.path.join("wallets_to_send", file_name))
-                mints_list.pop(i)
-                await interaction.response.send_message(f"Deleted `{drop_name}` from drop list!", ephemeral=True)
+                actual_mints.pop(i)
+                await interaction.response.send_message(f"Deleted `{release_id}` from drop list!", ephemeral=True)
                 return
         else:
-            await interaction.response.send_message(f"There are no releases named as {drop_name}", ephemeral=True)
+            await interaction.response.send_message(f"There are no releases named as {release_id}", ephemeral=True)
 
 
-class Aco(app_commands.Group):
-    @app_commands.command(name="send_wallets", description="Send wallets separated by commas for chosen release")
-    async def send_wallets(self, interaction: discord.Interaction, release_name: str, wallets: str):
+class Wallets(app_commands.Group):
+    @app_commands.command(name="send", description="Send wallets separated by commas for chosen release")
+    async def send_wallets(self, interaction: discord.Interaction, release_id: str, wallets: str):
         member_id = interaction.user.id
         member = get_data_by_id_from_list(interaction.user.id, aco_members)
         if member is None:
@@ -102,20 +104,24 @@ class Aco(app_commands.Group):
 
         wallets = [wallet.strip() for wallet in wallets.split(",")]
 
-        mint = get_mint_by_id(release_name)
+        mint = get_mint_by_id(release_id)
         if mint is not None:
             if member_id not in mint.wallets:
-                mint.wallets[member_id] = []
-            mint.wallets[member_id].extend(wallets)
-            await interaction.response.send_message(f"Successfully sent {len(wallets)} wallets")
+                mint.wallets[member_id] = set()
+            number_of_wallets = len(mint.wallets[member_id])
+            for wallet in wallets:
+                mint.wallets[member_id].add(wallet)
+            await interaction.response.send_message(
+                f"Successfully sent {len(mint.wallets[member_id]) - number_of_wallets} wallets,"
+                f" other {len(wallets) - (len(mint.wallets[member_id]) - number_of_wallets)} already exist")
         else:
-            await interaction.response.send_message(f"There are no releases named as {release_name}")
+            await interaction.response.send_message(f"There are no releases named as {release_id}")
 
-    @app_commands.command(name="check_wallets", description="Check the wallets that you sent")
-    async def check_wallets(self, interaction: discord.Interaction, release_name: str):
-        mint = get_mint_by_id(release_name)
+    @app_commands.command(name="check", description="Check the wallets that you sent")
+    async def check_wallets(self, interaction: discord.Interaction, release_id: str):
+        mint = get_mint_by_id(release_id)
         if mint is None:
-            await interaction.response.send_message(f"There are no releases named as {release_name}", ephemeral=True)
+            await interaction.response.send_message(f"There are no releases named as {release_id}", ephemeral=True)
             return
         member_id = interaction.user.id
         member_name = interaction.user.name
@@ -128,19 +134,21 @@ class Aco(app_commands.Group):
         message_to_send += "```"
         await interaction.response.send_message(message_to_send)
 
-    @app_commands.command(name="delete_wallets", description="Delete wallets separated by commas for chosen release")
-    async def delete_wallets(self, interaction: discord.Interaction, release_name: str, wallets: str):
-        mint = get_mint_by_id(release_name)
+    @app_commands.command(name="delete", description="Delete wallets separated by commas for chosen release")
+    async def delete_wallets(self, interaction: discord.Interaction, release_id: str, wallets: str):
+        mint = get_mint_by_id(release_id)
+        if mint is None:
+            await interaction.response.send_message(f"There are no releases named as {release_id}")
+            return
         member_id = interaction.user.id
         wallets_to_delete = [wallet.strip() for wallet in wallets.split(",")]
-        counter = 0
-        for wallet in reversed(mint.wallets[member_id]):
-            if wallet in wallets_to_delete:
-                mint.wallets[member_id].remove(wallet)
-                counter += 1
-        await interaction.response.send_message(f"Successfully deleted {counter} wallets")
+        counter = len(mint.wallets[member_id])
+        for wallet in wallets_to_delete:
+            mint.wallets[member_id].discard(wallet)
+        await interaction.response.send_message(
+            f"Successfully deleted {counter - len(mint.wallets[member_id])} wallets")
 
-    @app_commands.command(name="get_wallets", description="Get all wallets for specific release")
+    @app_commands.command(name="get-all-wallets", description="ADMIN COMMAND Get all wallets for specific release")
     async def get_wallets(self, interaction: discord.Interaction, release_id: str):
         if not check_admin(interaction.user.id):
             await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
@@ -153,10 +161,10 @@ class Aco(app_commands.Group):
 
         wallets = ""
         wallets_as_dict = []
-        for member in mint.wallets:
-            for i, wallet in enumerate(mint.wallets[member], 1):
-                wallets += f"{member}{i}:{wallet}\n"
-                wallets_as_dict.append({"ALIAS": f"{member}{i}",
+        for member_id in mint.wallets:
+            for i, wallet in enumerate(mint.wallets[member_id], 1):
+                wallets += f"{get_member_name_by_id(member_id)}{i}:{wallet}\n"
+                wallets_as_dict.append({"ALIAS": f"{get_member_name_by_id(member_id)}{i}",
                                         "PRIVATE_KEY": wallet})
 
         timestamp = int(time.time())
@@ -178,20 +186,20 @@ class Admin(app_commands.Group):
         if not check_admin(interaction.user.id):
             await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
             return
-        files = [(mints_list, "mints_list.json"), (aco_members, "aco_members.json"), (payments, "payments.json")]
+        files = [(actual_mints, "actual_mints.json"), (aco_members, "aco_members.json"), (all_mints, "all_mints.json")]
         for file in files:
             save_json(*file)
         await interaction.response.send_message(
-            files=[discord.File(file[1]) for file in files])
+            files=[discord.File(os.path.join("data", file[1])) for file in files])
 
 
 class Payment(app_commands.Group):
-    @app_commands.command(name="add_success", description="Add success to chosen release for chosen user")
+    @app_commands.command(name="add-success", description="Add success to chosen release for chosen user")
     async def add_success(self, interaction: discord.Interaction, release_name: str, amount: int, user: discord.Member):
         if not check_admin(interaction.user.id):
             await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
             return
-        mint = get_data_by_id_from_list(release_name, payments)
+        mint = get_data_by_id_from_list(release_name, all_mints)
         if mint is None:
             await interaction.response.send_message(f"There are no releases named as {release_name}")
             return
@@ -218,7 +226,8 @@ class Payment(app_commands.Group):
             for admin_id in config.ADMINS_IDS:
                 admins_to_ping += "<@" + str(admin_id) + "> "
             button.callback = second_response
-            await first_interaction.response.edit_message(content=f"{admins_to_ping}, check this payment.", view=view)
+            await first_interaction.response.edit_message(
+                content=f"{admins_to_ping}, check {amount_to_pay} $SOL payment.", view=view)
 
         async def second_response(second_interaction: discord.Interaction):
             if not check_admin(second_interaction.user.id):
@@ -237,3 +246,11 @@ class Payment(app_commands.Group):
             f"Send {amount_to_pay} $SOL to `pay1L1NNvAgjgWiPQMR3G5RwSLcDLpPtbG2VGchZWEh` and click button below after "
             f"success",
             view=view)
+
+    @app_commands.command(name="get-mints-list", description="Add success to chosen release for chosen user")
+    async def get_mints_list(self, interaction: discord.Interaction):
+        data_to_send = '```'
+        for mint in all_mints:
+            data_to_send += f"{mint}"
+        data_to_send += "```"
+        await interaction.response.send_message(data_to_send)

@@ -16,6 +16,6 @@ def get_list_from_json(file_name, inner_class):
         return []
 
 
-mints_list = get_list_from_json("mints_list.json", Drop)
+actual_mints = get_list_from_json("actual_mints.json", Drop)
 aco_members = get_list_from_json("aco_members.json", ACOMember)
-payments = get_list_from_json("payments.json", Drop)
+all_mints = get_list_from_json("all_mints.json", Drop)

@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from command_groups import Mints, Aco, Admin, Payment
+from command_groups import Mints, Wallets, Admin, Payment
 
 
 class DiscordClient(commands.Bot):
@@ -9,7 +9,7 @@ class DiscordClient(commands.Bot):
         super().__init__(intents=discord.Intents.all(), command_prefix=prefix)
         self.synced = False
         self.tree.add_command(Mints())
-        self.tree.add_command(Aco())
+        self.tree.add_command(Wallets())
         self.tree.add_command(Admin())
         self.tree.add_command(Payment())
 

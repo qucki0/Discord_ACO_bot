@@ -1,9 +1,10 @@
 import json
+import os
 
 import discord
 
 import config
-from additions.all_data import mints_list, aco_members
+from additions.all_data import actual_mints, aco_members
 from additions.classes import ACOMember
 
 
@@ -12,7 +13,7 @@ def check_admin(member_id):
 
 
 def get_mint_by_id(release_name):
-    return get_data_by_id_from_list(release_name, mints_list)
+    return get_data_by_id_from_list(release_name, actual_mints)
 
 
 def get_data_by_id_from_list(data_to_find, array_to_check):
@@ -41,5 +42,5 @@ def get_list_for_backup(arr):
 
 
 def save_json(arr, filename):
-    with open(filename, "w") as file:
+    with open(os.path.join("data", filename), "w") as file:
         file.write(json.dumps(get_list_for_backup(arr), sort_keys=True, indent=4))

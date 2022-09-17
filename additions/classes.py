@@ -13,14 +13,14 @@ class Drop:
             self.id = json_file["id"]
             self.timestamp = json_file["timestamp"]
             self.link = json_file["link"]
-            self.wallets = json_file["wallets"]
+            self.wallets = {key: set(json_file["wallets"][key]) for key in json_file["wallets"]}
             self.checkouts = json_file["checkouts"]
 
     def get_as_dict(self):
         data = {"id": self.id,
                 "timestamp": self.timestamp,
                 "link": self.link,
-                "wallets": self.wallets,
+                "wallets": {key: list(self.wallets[key]) for key in self.wallets},
                 "checkouts": self.checkouts}
         return data
 
