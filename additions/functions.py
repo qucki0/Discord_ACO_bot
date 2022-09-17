@@ -4,8 +4,8 @@ import os
 import discord
 
 import config
-from additions.all_data import actual_mints, aco_members
-from additions.classes import ACOMember
+from additions.all_data import actual_mints, aco_members, all_mints
+from additions.classes import ACOMember, Drop
 
 
 def check_admin(member_id):
@@ -39,6 +39,21 @@ def get_list_for_backup(arr):
     for a in arr:
         data.append(a.get_as_dict())
     return data
+
+
+async def add_mint_to_mints_list(interaction: discord.Interaction, release_id, link, timestamp):
+    if check_mint_exist(release_id):
+        await interaction.response.send_message(f"{release_id} already exist!", ephemeral=True)
+    else:
+        mint = Drop(release_id, timestamp, link)
+        actual_mints.append(mint)
+        all_mints.append(mint)
+        await interaction.client.get_channel(1019024498571350086).send("New mint found", embed=mint.get_as_embed())
+        await interaction.response.send_message(f"Added `{release_id}` to drop list!", ephemeral=True)
+
+
+def check_mint_exist(release_id):
+    return any(release_id.lower().strip() == drop.id.lower() for drop in all_mints)
 
 
 def save_json(arr, filename):

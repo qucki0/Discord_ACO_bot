@@ -7,27 +7,18 @@ from discord import app_commands
 
 import config
 from additions.all_data import actual_mints, aco_members, all_mints
-from additions.classes import Drop
 from additions.functions import check_admin, get_mint_by_id, save_json, get_data_by_id_from_list, add_member, \
-    get_member_name_by_id
+    get_member_name_by_id, add_mint_to_mints_list, check_mint_exist
 
 
 class Mints(app_commands.Group):
-
     @app_commands.command(name="add", description="Add mint to mints list")
     async def add_mint(self, interaction: discord.Interaction, release_id: str, link: str = None,
                        timestamp: str = None):
         if not check_admin(interaction.user.id):
             await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
             return
-        if any(release_id.lower().strip() == drop.id.lower() for drop in actual_mints):
-            await interaction.response.send_message(f"{release_id} already exist!", ephemeral=True)
-        else:
-            mint = Drop(release_id, timestamp, link)
-            actual_mints.append(mint)
-            all_mints.append(mint)
-            await interaction.client.get_channel(1019024498571350086).send("New mint found", embed=mint.get_as_embed())
-            await interaction.response.send_message(f"Added `{release_id}` to drop list!", ephemeral=True)
+        await add_mint_to_mints_list(interaction, release_id, link, timestamp)
 
     @app_commands.command(name="get-all", description="Get actual mints")
     async def get_mints(self, interaction: discord.Interaction):
@@ -62,8 +53,8 @@ class Mints(app_commands.Group):
             mint.link = new_value
         if change_type == "timestamp":
             mint.timestamp = new_value
-        await interaction.client.get_channel(1019024498571350086).send("Something changed, check it!",
-                                                                       embed=mint.get_as_embed())
+        await interaction.client.get_channel(config.ALERT_CHANNEL_ID).send("Something changed, check it!",
+                                                                           embed=mint.get_as_embed())
         await interaction.response.send_message(f"Successfully changed {change_type} to {new_value}",
                                                 ephemeral=True)
 
@@ -71,10 +62,38 @@ class Mints(app_commands.Group):
     async def request_mint(self, interaction: discord.Interaction, release_id: str, link: str = None,
                            mint_time: str = None):
         admins_to_ping = ""
+        if check_mint_exist(release_id):
+            await interaction.response.send_message(f"`{release_id}` already exist!", ephemeral=True)
+            return
         for admin_id in config.ADMINS_IDS:
             admins_to_ping += "<@" + str(admin_id) + "> "
+        accept_button = discord.ui.Button(label="Accept", style=discord.ButtonStyle.green)
+        reject_button = discord.ui.Button(label="Reject", style=discord.ButtonStyle.red)
+
+        async def accept_response(accept_interaction: discord.Interaction):
+            if not check_admin(accept_interaction.user.id):
+                await accept_interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+                return
+            await add_mint_to_mints_list(accept_interaction, release_id, link, mint_time)
+            await interaction.delete_original_response()
+            await accept_interaction.client.get_channel(accept_interaction.channel_id).send(
+                ":green_circle:Request Accepted")
+
+        async def reject_response(reject_interaction: discord.Interaction):
+            if not check_admin(reject_interaction.user.id):
+                await reject_interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+                return
+            await reject_interaction.client.get_channel(reject_interaction.channel_id).send(
+                ":red_circle:Request Rejected")
+
+        accept_button.callback = accept_response
+        reject_button.callback = reject_response
+        view = discord.ui.View(timeout=None)
+        view.add_item(accept_button)
+        view.add_item(reject_button)
+
         await interaction.response.send_message(
-            f"{admins_to_ping}, please add `{release_id}`, link:`{link}`, time: `{mint_time}`")
+            f"{admins_to_ping}, please add `{release_id}`, link:`{link}`, time: `{mint_time}`", view=view)
 
     @app_commands.command(name="delete", description="Delete mint from mints list")
     async def delete_mint(self, interaction: discord.Interaction, release_id: str):
