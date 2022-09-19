@@ -1,17 +1,17 @@
 import discord
 from discord.ext import commands
 
-from command_groups import Mints, Wallets, Admin, Payment
+from commands_groups.admin import AdminMints, AdminWallets, Admin, AdminPayment
+from commands_groups.member import Mints, Wallets, Payment
 
 
 class DiscordClient(commands.Bot):
     def __init__(self, prefix="!"):
         super().__init__(intents=discord.Intents.all(), command_prefix=prefix)
         self.synced = False
-        self.tree.add_command(Mints())
-        self.tree.add_command(Wallets())
-        self.tree.add_command(Admin())
-        self.tree.add_command(Payment())
+        groups = [AdminMints, AdminWallets, Admin, AdminPayment, Mints, Wallets, Payment]
+        for group in groups:
+            self.tree.add_command(group())
 
     async def on_ready(self):
         if not self.synced:
