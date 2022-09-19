@@ -16,6 +16,6 @@ def get_list_from_json(file_name, inner_class):
         return []
 
 
-actual_mints = get_list_from_json("actual_mints.json", Drop)
-aco_members = get_list_from_json("aco_members.json", ACOMember)
-all_mints = get_list_from_json("all_mints.json", Drop)
+actual_mints = get_list_from_json(os.path.join("data", "actual_mints.json"), Drop)
+aco_members = get_list_from_json(os.path.join("data", "aco_members.json"), ACOMember)
+all_mints = get_list_from_json(os.path.join("data", "all_mints.json"), Drop)
