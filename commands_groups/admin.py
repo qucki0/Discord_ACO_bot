@@ -54,7 +54,7 @@ class AdminMints(app_commands.Group):
         if not check_admin(interaction.user.id):
             await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
             return
-        data_to_send = '```'
+        data_to_send = '```\n'
         for mint in all_mints:
             data_to_send += f"{mint.id}\n"
         data_to_send += "```"
@@ -141,3 +141,19 @@ class Admin(app_commands.Group):
         for file in files:
             save_json(*file)
         await interaction.response.send_message(files=[discord.File(os.path.join("data", file[1])) for file in files])
+
+    @app_commands.command(name="add", description="ADMIN COMMAND add member to admins list")
+    async def add(self, interaction: discord.Interaction, user: discord.Member):
+        if not (interaction.user.id in config.ADMIN_ACCESS):  # temporary solution
+            await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+            return
+        config.ADMINS_IDS.append(user.id)
+        await interaction.response.send_message(f"Added {user.name} to admins list")
+
+    @app_commands.command(name="delete", description="ADMIN COMMAND add member to admins list")
+    async def delete(self, interaction: discord.Interaction, user: discord.Member):
+        if not (interaction.user.id in config.ADMIN_ACCESS):  # temporary solution
+            await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+            return
+        config.ADMINS_IDS.remove(user.id)
+        await interaction.response.send_message(f"Deleted {user.name} from admins list")
