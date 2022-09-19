@@ -7,6 +7,7 @@ from discord import app_commands
 
 import config
 from additions.all_data import actual_mints, aco_members, all_mints
+from additions.embeds import Embeds
 from additions.functions import check_admin, get_mint_by_id, save_json, get_data_by_id_from_list, add_member, \
     get_member_name_by_id, add_mint_to_mints_list
 
@@ -108,7 +109,7 @@ class AdminWallets(app_commands.Group):
         await interaction.response.send_message(files=[discord.File(txt_file_name), discord.File(csv_file_name)])
 
 
-class AdminPayment(app_commands.Group):
+class AdminPayments(app_commands.Group):
     @app_commands.command(name="add-success", description="ADMIN COMMAND Add success to chosen release for chosen user")
     async def add_success(self, interaction: discord.Interaction, release_name: str, amount: int, user: discord.Member):
         if not check_admin(interaction.user.id):
@@ -124,11 +125,14 @@ class AdminPayment(app_commands.Group):
         member = get_data_by_id_from_list(user.id, aco_members)
         if mint.id not in member.payments:
             member.payments[mint.id] = {"amount_of_checkouts": amount,
-                                        "paid": False}
+                                        "unpaid_amount": amount}
         else:
             member.payments[mint.id]["amount_of_checkouts"] += amount
+            member.payments[mint.id]["unpaid_amount"] += amount
         mint.checkouts += amount
-        await interaction.response.send_message(f"Added {amount} checkouts")
+        await interaction.response.send_message(f"Added {amount} checkouts", ephemeral=True)
+        await interaction.client.get_channel(interaction.channel_id).send(
+            embed=Embeds.success(user.name, release_name, member.payments[mint.id]["amount_of_checkouts"]))
 
 
 class Admin(app_commands.Group):
@@ -155,5 +159,7 @@ class Admin(app_commands.Group):
         if not (interaction.user.id in config.ADMIN_ACCESS):  # temporary solution
             await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
             return
+        if user.id not in config.ADMINS_IDS:
+            await interaction.response.send_message(f"{user.name} is not admin", ephemeral=True)
         config.ADMINS_IDS.remove(user.id)
-        await interaction.response.send_message(f"Deleted {user.name} from admins list")
+        await interaction.response.send_message(f"Deleted {user.name} from admins list", ephemeral=True)

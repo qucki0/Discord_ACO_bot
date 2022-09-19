@@ -1,10 +1,12 @@
 import discord
 
+from additions.embeds import Embeds
+
 
 class Drop:
-    def __init__(self, id=None, timestamp=None, link=None, json_file=None):
+    def __init__(self, mint_id=None, timestamp=None, link=None, json_file=None):
         if json_file is None:
-            self.id = id.strip()
+            self.id = mint_id.strip()
             self.timestamp = timestamp
             self.link = link
             self.wallets = {}
@@ -38,16 +40,7 @@ class Drop:
             return self.wallets[member_id]
 
     def get_as_embed(self):
-        description = ""
-        if self.link is not None:
-            description += f":green_circle:{self.link}\n\n"
-        if self.timestamp is not None:
-            description += f":clock10:Time: <t:{self.timestamp}>"
-
-        embed = discord.Embed(title=f":bell:{self.id}", colour=discord.Colour.dark_grey(),
-                              description=description)
-        embed.set_footer(text="Take your ACO in ticket")
-        return embed
+        return Embeds.mint_data(self.id, self.link, self.timestamp)
 
 
 class ACOMember:

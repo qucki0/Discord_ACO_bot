@@ -3,12 +3,12 @@ from discord import app_commands
 
 import config
 from additions.all_data import actual_mints, aco_members
+from additions.embeds import Embeds
 from additions.functions import check_admin, get_mint_by_id, get_data_by_id_from_list, add_member, \
     add_mint_to_mints_list, check_mint_exist
 
 
 class Mints(app_commands.Group):
-
     @app_commands.command(name="get-all", description="Get actual mints")
     async def get_mints(self, interaction: discord.Interaction):
         data_to_send = [mint.get_as_embed() for mint in actual_mints]
@@ -37,12 +37,13 @@ class Mints(app_commands.Group):
             await add_mint_to_mints_list(accept_interaction, release_id, link, mint_time)
             await interaction.delete_original_response()
             await accept_interaction.client.get_channel(accept_interaction.channel_id).send(
-                ":green_circle:Request Accepted")
+                f":green_circle:Request for {release_id} Accepted")
 
         async def reject_response(reject_interaction: discord.Interaction):
             if not check_admin(reject_interaction.user.id):
                 await reject_interaction.response.send_message("Not enough rights to do it", ephemeral=True)
                 return
+            await interaction.delete_original_response()
             await reject_interaction.client.get_channel(reject_interaction.channel_id).send(
                 ":red_circle:Request Rejected")
 
@@ -122,11 +123,16 @@ class Wallets(app_commands.Group):
             f"Successfully deleted {counter - len(mint.wallets[member_id])} wallets")
 
 
-class Payment(app_commands.Group):
-    @app_commands.command(name="pay", description="Add success to chosen release for chosen user")
-    async def pay(self, interaction: discord.Interaction, release_name: str, amount_to_pay: float):
+class Payments(app_commands.Group):
+    @app_commands.command(name="pay", description="Make payment for chosen release and amount of checkouts")
+    async def pay(self, interaction: discord.Interaction, release_name: str, amount_to_pay: float,
+                  checkouts_quantity: int):
         button = discord.ui.Button(label="Confirm", style=discord.ButtonStyle.green)
         member_id = interaction.user.id
+        member = get_data_by_id_from_list(member_id, aco_members)
+        if checkouts_quantity > member.payments[release_name]["unpaid_amount"] or checkouts_quantity <= 0:
+            await interaction.response.send_message("Wrong checkouts quantity", ephemeral=True)
+            return
 
         async def first_response(first_interaction: discord.Interaction):
             admins_to_ping = ""
@@ -134,16 +140,16 @@ class Payment(app_commands.Group):
                 admins_to_ping += "<@" + str(admin_id) + "> "
             button.callback = second_response
             await first_interaction.response.edit_message(
-                content=f"{admins_to_ping}, check {amount_to_pay} $SOL payment.", view=view)
+                content=f"{admins_to_ping}, check *{amount_to_pay} $SOL* payment.", view=view)
 
         async def second_response(second_interaction: discord.Interaction):
             if not check_admin(second_interaction.user.id):
                 await second_interaction.response.send_message("Not enough rights to do it", ephemeral=True)
                 return
-            member = get_data_by_id_from_list(member_id, aco_members)
-            member.payments[release_name]["paid"] = True
+
+            member.payments[release_name]["unpaid_amount"] -= checkouts_quantity
             await second_interaction.response.edit_message(
-                content=f"Payment {amount_to_pay} $SOL for {release_name} successful", view=None)
+                content=f"Payment *{amount_to_pay} $SOL* for `{release_name}` successful", view=None)
 
         button.callback = first_response
         view = discord.ui.View(timeout=None)
@@ -168,13 +174,4 @@ class Payment(app_commands.Group):
             await interaction.response.send_message("Nothing to see, take your first ACO!", ephemeral=True)
             return
 
-        description = ""
-        for key in member.payments:
-            if not member.payments[key]["paid"]:
-                description += f"{key}, {member.payments[key]['amount_of_checkouts']} successes\n\n"
-        if not description:
-            description = "All your successes has already been paid"
-
-        embed_to_send = discord.Embed(title=f"{member.name} Unpaid Successes", colour=discord.Colour.red(),
-                                      description=description)
-        await interaction.response.send_message(embed=embed_to_send)
+        await interaction.response.send_message(embed=Embeds.unpaid_successes(member))
