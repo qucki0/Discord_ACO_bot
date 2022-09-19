@@ -99,7 +99,8 @@ class Wallets(app_commands.Group):
         message_to_send += "```"
         await interaction.response.send_message(message_to_send)
 
-    @app_commands.command(name="delete", description="Delete wallets separated by commas for chosen release")
+    @app_commands.command(name="delete",
+                          description='Delete wallets separated by commas for chosen release, "all" for all')
     async def delete_wallets(self, interaction: discord.Interaction, release_id: str, wallets: str):
         mint = get_mint_by_id(release_id)
         if mint is None:
@@ -109,16 +110,19 @@ class Wallets(app_commands.Group):
         if member_id not in mint.wallets:
             await interaction.response.send_message(f"You need to submit wallets firstly!")
             return
-        wallets_to_delete = [wallet.strip() for wallet in wallets.split(",")]
+
         counter = len(mint.wallets[member_id])
-        for wallet in wallets_to_delete:
-            mint.wallets[member_id].discard(wallet)
+        if wallets.lower().strip() == "all":
+            mint.wallets[member_id].clear()
+        else:
+            wallets_to_delete = [wallet.strip() for wallet in wallets.split(",")]
+            for wallet in wallets_to_delete:
+                mint.wallets[member_id].discard(wallet)
         await interaction.response.send_message(
             f"Successfully deleted {counter - len(mint.wallets[member_id])} wallets")
 
 
 class Payment(app_commands.Group):
-
     @app_commands.command(name="pay", description="Add success to chosen release for chosen user")
     async def pay(self, interaction: discord.Interaction, release_name: str, amount_to_pay: float):
         button = discord.ui.Button(label="Confirm", style=discord.ButtonStyle.green)
