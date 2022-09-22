@@ -91,7 +91,7 @@ class AdminWallets(app_commands.Group):
         if mint is None:
             await interaction.response.send_message(f"There are no releases named as {release_id}")
             return
-
+        base_wallets_dir = "wallets_to_send"
         wallets = ""
         wallets_as_dict = []
         for member_id in mint.wallets:
@@ -99,10 +99,11 @@ class AdminWallets(app_commands.Group):
                 wallets += f"{get_member_name_by_id(member_id)}{i}:{wallet}\n"
                 wallets_as_dict.append({"ALIAS": f"{get_member_name_by_id(member_id)}{i}",
                                         "PRIVATE_KEY": wallet})
-
+        if not os.path.exists(base_wallets_dir):
+            os.mkdir(base_wallets_dir)
         timestamp = int(time.time())
-        txt_file_name = os.path.join("wallets_to_send", f"{release_id}{timestamp}.txt")
-        csv_file_name = os.path.join("wallets_to_send", f"{release_id}{timestamp}.csv")
+        txt_file_name = os.path.join(base_wallets_dir, f"{release_id}{timestamp}.txt")
+        csv_file_name = os.path.join(base_wallets_dir, f"{release_id}{timestamp}.csv")
         with open(txt_file_name, "w") as file:
             file.write(wallets)
         with open(csv_file_name, "w", newline='') as csv_file:
@@ -147,6 +148,8 @@ class Admin(app_commands.Group):
             await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
                                                     ephemeral=True)
             return
+        if not os.path.exists("data"):
+            os.mkdir("data")
         files = [(actual_mints, "actual_mints.json"), (aco_members, "aco_members.json"), (all_mints, "all_mints.json")]
         for file in files:
             save_json(*file)
