@@ -32,7 +32,8 @@ class Mints(app_commands.Group):
 
         async def accept_response(accept_interaction: discord.Interaction):
             if not check_admin(accept_interaction.user.id):
-                await accept_interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+                await accept_interaction.response.send_message(
+                    "You do not have enough permissions to do perform this operation.", ephemeral=True)
                 return
             await add_mint_to_mints_list(accept_interaction, release_id, link, mint_time)
             await interaction.delete_original_response()
@@ -41,7 +42,8 @@ class Mints(app_commands.Group):
 
         async def reject_response(reject_interaction: discord.Interaction):
             if not check_admin(reject_interaction.user.id):
-                await reject_interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+                await reject_interaction.response.send_message(
+                    "You do not have enough permissions to do perform this operation.", ephemeral=True)
                 return
             await interaction.delete_original_response()
             await reject_interaction.client.get_channel(reject_interaction.channel_id).send(
@@ -64,24 +66,29 @@ class Wallets(app_commands.Group):
         member = get_data_by_id_from_list(interaction.user.id, aco_members)
         if member is None:
             add_member(interaction.user)
+
+        wallets = [wallet.strip() for wallet in wallets.split(",")]
         if not len(wallets):
             await interaction.response.send_message("Please input wallets keys")
             return
 
-        wallets = [wallet.strip() for wallet in wallets.split(",")]
-
         mint = get_mint_by_id(release_id)
-        if mint is not None:
-            if member_id not in mint.wallets:
-                mint.wallets[member_id] = set()
-            number_of_wallets = len(mint.wallets[member_id])
-            for wallet in wallets:
-                mint.wallets[member_id].add(wallet)
-            await interaction.response.send_message(
-                f"Successfully sent {len(mint.wallets[member_id]) - number_of_wallets} wallets,"
-                f" other {len(wallets) - (len(mint.wallets[member_id]) - number_of_wallets)} already exist")
-        else:
+        if mint is None:
             await interaction.response.send_message(f"There are no releases named as {release_id}")
+            return
+
+        if mint.wallets_limit < len(wallets):
+            await interaction.response.send_message(f"There are only {mint.wallets_limit} spots left for {mint.id}")
+
+        if member_id not in mint.wallets:
+            mint.wallets[member_id] = set()
+        number_of_wallets = len(mint.wallets[member_id])
+        for wallet in wallets:
+            mint.wallets[member_id].add(wallet)
+        mint.wallets_limit -= len(mint.wallets[member_id]) - number_of_wallets
+        await interaction.response.send_message(
+            f"Successfully sent {len(mint.wallets[member_id]) - number_of_wallets} wallets,"
+            f" other {len(wallets) - (len(mint.wallets[member_id]) - number_of_wallets)} already exist")
 
     @app_commands.command(name="check", description="Check the wallets that you sent")
     async def check_wallets(self, interaction: discord.Interaction, release_id: str):
@@ -119,6 +126,7 @@ class Wallets(app_commands.Group):
             wallets_to_delete = [wallet.strip() for wallet in wallets.split(",")]
             for wallet in wallets_to_delete:
                 mint.wallets[member_id].discard(wallet)
+        mint.wallets_limit += counter - len(mint.wallets[member_id])
         await interaction.response.send_message(
             f"Successfully deleted {counter - len(mint.wallets[member_id])} wallets")
 
@@ -144,7 +152,8 @@ class Payments(app_commands.Group):
 
         async def second_response(second_interaction: discord.Interaction):
             if not check_admin(second_interaction.user.id):
-                await second_interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+                await second_interaction.response.send_message(
+                    "You do not have enough permissions to do perform this operation.", ephemeral=True)
                 return
 
             member.payments[release_name]["unpaid_amount"] -= checkouts_quantity
@@ -166,7 +175,8 @@ class Payments(app_commands.Group):
             member = get_data_by_id_from_list(interaction.user.id, aco_members)
         else:
             if not check_admin(interaction.user.id):
-                await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+                await interaction.response.send_message(
+                    "You do not have enough permissions to do perform this operation.", ephemeral=True)
                 return
             member = get_data_by_id_from_list(user.id, aco_members)
 

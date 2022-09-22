@@ -41,11 +41,11 @@ def get_list_for_backup(arr):
     return data
 
 
-async def add_mint_to_mints_list(interaction: discord.Interaction, release_id, link, timestamp):
+async def add_mint_to_mints_list(interaction: discord.Interaction, release_id, link, timestamp, wallets_limit=10):
     if check_mint_exist(release_id):
         await interaction.response.send_message(f"{release_id} already exist!", ephemeral=True)
     else:
-        mint = Drop(release_id, timestamp, link)
+        mint = Drop(release_id, link, timestamp, wallets_limit)
         actual_mints.append(mint)
         all_mints.append(mint)
         await interaction.client.get_channel(config.ALERT_CHANNEL_ID).send("New mint found", embed=mint.get_as_embed())

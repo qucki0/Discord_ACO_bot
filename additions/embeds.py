@@ -3,13 +3,14 @@ import discord
 
 class Embeds:
     @staticmethod
-    def mint_data(mint_id, link, timestamp):
-        description = ""
+    def mint_data(mint_id, link, timestamp, wallets_limit):
+        embed = discord.Embed(title=f":bell:{mint_id}", colour=discord.Colour.dark_grey())
         if link is not None:
-            description += f":green_circle:{link}\n\n"
+            embed.add_field(name="Link:", value=link)
         if timestamp is not None:
-            description += f":clock10:Time: <t:{timestamp}>"
-        embed = discord.Embed(title=f":bell:{mint_id}", colour=discord.Colour.dark_grey(), description=description)
+            embed.add_field(name="Time:", value=f"<t:{timestamp}>")
+        if wallets_limit is not None:
+            embed.add_field(name="Spots left:", value=str(wallets_limit), inline=False)
         embed.set_footer(text="Take your ACO in ticket")
         return embed
 

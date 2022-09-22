@@ -4,15 +4,17 @@ from additions.embeds import Embeds
 
 
 class Drop:
-    def __init__(self, mint_id=None, timestamp=None, link=None, json_file=None):
+    def __init__(self, mint_id=None, link=None, timestamp=None, wallets_limit=None, json_file=None):
         if json_file is None:
             self.id = mint_id.strip()
+            self.wallets_limit = wallets_limit
             self.timestamp = timestamp
             self.link = link
             self.wallets = {}
             self.checkouts = 0
         else:
             self.id = json_file["id"]
+            self.wallets_limit = json_file["wallets_limit"]
             self.timestamp = json_file["timestamp"]
             self.link = json_file["link"]
             self.wallets = {key: set(json_file["wallets"][key]) for key in json_file["wallets"]}
@@ -20,6 +22,7 @@ class Drop:
 
     def get_as_dict(self):
         data = {"id": self.id,
+                "wallets_limit": self.wallets_limit,
                 "timestamp": self.timestamp,
                 "link": self.link,
                 "wallets": {key: list(self.wallets[key]) for key in self.wallets},
@@ -40,7 +43,7 @@ class Drop:
             return self.wallets[member_id]
 
     def get_as_embed(self):
-        return Embeds.mint_data(self.id, self.link, self.timestamp)
+        return Embeds.mint_data(self.id, self.link, self.timestamp, self.wallets_limit)
 
 
 class ACOMember:

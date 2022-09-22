@@ -14,18 +14,20 @@ from additions.functions import check_admin, get_mint_by_id, save_json, get_data
 
 class AdminMints(app_commands.Group):
     @app_commands.command(name="add", description="ADMIN COMMAND Add mint to mints list")
-    async def add_mint(self, interaction: discord.Interaction, release_id: str, link: str = None,
+    async def add_mint(self, interaction: discord.Interaction, release_id: str, wallets_limit: int, link: str = None,
                        timestamp: str = None):
         if not check_admin(interaction.user.id):
-            await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+            await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
+                                                    ephemeral=True)
             return
-        await add_mint_to_mints_list(interaction, release_id, link, timestamp)
+        await add_mint_to_mints_list(interaction, release_id, link, timestamp, wallets_limit)
 
     @app_commands.command(name="change-info", description="ADMIN COMMAND Change mint [id, link or time]")
     async def change_mint_info(self, interaction: discord.Interaction, release_id: str, change_type: str,
                                new_value: str):
         if not check_admin(interaction.user.id):
-            await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+            await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
+                                                    ephemeral=True)
             return
 
         change_type = change_type.lower().strip()
@@ -53,7 +55,8 @@ class AdminMints(app_commands.Group):
     @app_commands.command(name="get-all-mints-list", description="ADMIN COMMAND Get all mints")
     async def get_mints_list(self, interaction: discord.Interaction):
         if not check_admin(interaction.user.id):
-            await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+            await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
+                                                    ephemeral=True)
             return
         data_to_send = '```\n'
         for mint in all_mints:
@@ -80,7 +83,8 @@ class AdminWallets(app_commands.Group):
     @app_commands.command(name="get-all", description="ADMIN COMMAND Get all wallets for specific release")
     async def get_wallets(self, interaction: discord.Interaction, release_id: str):
         if not check_admin(interaction.user.id):
-            await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+            await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
+                                                    ephemeral=True)
             return
 
         mint = get_mint_by_id(release_id)
@@ -113,7 +117,8 @@ class AdminPayments(app_commands.Group):
     @app_commands.command(name="add-success", description="ADMIN COMMAND Add success to chosen release for chosen user")
     async def add_success(self, interaction: discord.Interaction, release_name: str, amount: int, user: discord.Member):
         if not check_admin(interaction.user.id):
-            await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+            await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
+                                                    ephemeral=True)
             return
         mint = get_data_by_id_from_list(release_name, all_mints)
         if mint is None:
@@ -139,7 +144,8 @@ class Admin(app_commands.Group):
     @app_commands.command(name="backup", description="ADMIN COMMAND just doing backup")
     async def backup(self, interaction: discord.Interaction):
         if not check_admin(interaction.user.id):
-            await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+            await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
+                                                    ephemeral=True)
             return
         files = [(actual_mints, "actual_mints.json"), (aco_members, "aco_members.json"), (all_mints, "all_mints.json")]
         for file in files:
@@ -149,7 +155,8 @@ class Admin(app_commands.Group):
     @app_commands.command(name="add", description="ADMIN COMMAND add member to admins list")
     async def add(self, interaction: discord.Interaction, user: discord.Member):
         if not (interaction.user.id in config.ADMIN_ACCESS):  # temporary solution
-            await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+            await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
+                                                    ephemeral=True)
             return
         config.ADMINS_IDS.append(user.id)
         await interaction.response.send_message(f"Added {user.name} to admins list")
@@ -157,9 +164,14 @@ class Admin(app_commands.Group):
     @app_commands.command(name="delete", description="ADMIN COMMAND add member to admins list")
     async def delete(self, interaction: discord.Interaction, user: discord.Member):
         if not (interaction.user.id in config.ADMIN_ACCESS):  # temporary solution
-            await interaction.response.send_message("Not enough rights to do it", ephemeral=True)
+            await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
+                                                    ephemeral=True)
             return
         if user.id not in config.ADMINS_IDS:
             await interaction.response.send_message(f"{user.name} is not admin", ephemeral=True)
         config.ADMINS_IDS.remove(user.id)
         await interaction.response.send_message(f"Deleted {user.name} from admins list", ephemeral=True)
+
+    @app_commands.command(name="help", description="ADMIN COMMAND help")
+    async def delete(self, interaction: discord.Interaction):
+        await interaction.response.send_message(embeds=Embeds.help())
