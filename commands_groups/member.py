@@ -2,8 +2,8 @@ import discord
 from discord import app_commands
 
 import config
+from additions import embeds
 from additions.all_data import actual_mints, aco_members
-from additions.embeds import Embeds
 from additions.functions import check_admin, get_mint_by_id, get_data_by_id_from_list, add_member, \
     add_mint_to_mints_list, check_mint_exist
 
@@ -184,4 +184,4 @@ class Payments(app_commands.Group):
             await interaction.response.send_message("Nothing to see, take your first ACO!", ephemeral=True)
             return
 
-        await interaction.response.send_message(embed=Embeds.unpaid_successes(member))
+        await interaction.response.send_message(embed=embeds.unpaid_successes(member))

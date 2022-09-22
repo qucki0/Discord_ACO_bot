@@ -6,8 +6,8 @@ import discord
 from discord import app_commands
 
 import config
+from additions import embeds
 from additions.all_data import actual_mints, aco_members, all_mints
-from additions.embeds import Embeds
 from additions.functions import check_admin, get_mint_by_id, save_json, get_data_by_id_from_list, add_member, \
     get_member_name_by_id, add_mint_to_mints_list
 
@@ -137,7 +137,7 @@ class AdminPayments(app_commands.Group):
         mint.checkouts += amount
         await interaction.response.send_message(f"Added {amount} checkouts", ephemeral=True)
         await interaction.client.get_channel(interaction.channel_id).send(
-            embed=Embeds.success(user.name, release_name, member.payments[mint.id]["amount_of_checkouts"]))
+            embed=embeds.success(user.name, release_name, member.payments[mint.id]["amount_of_checkouts"]))
 
 
 class Admin(app_commands.Group):
@@ -174,4 +174,4 @@ class Admin(app_commands.Group):
 
     @app_commands.command(name="help", description="ADMIN COMMAND help")
     async def delete(self, interaction: discord.Interaction):
-        await interaction.response.send_message(embeds=Embeds.help())
+        await interaction.response.send_message(embeds=embeds.help_embeds())

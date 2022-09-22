@@ -1,6 +1,6 @@
 import discord
 
-from additions.embeds import Embeds
+from additions import embeds
 
 
 class Drop:
@@ -43,7 +43,7 @@ class Drop:
             return self.wallets[member_id]
 
     def get_as_embed(self):
-        return Embeds.mint_data(self.id, self.link, self.timestamp, self.wallets_limit)
+        return embeds.mint_data(self.id, self.link, self.timestamp, self.wallets_limit)
 
 
 class ACOMember:
