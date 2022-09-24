@@ -7,6 +7,7 @@ from additions.functions import check_admin, get_mint_by_id, get_data_by_id_from
     add_mint_to_mints_list, check_mint_exist
 
 
+@app_commands.guild_only()
 class Mints(app_commands.Group):
     @app_commands.command(name="get-all", description="Get actual mints")
     async def get_mints(self, interaction: discord.Interaction):
@@ -58,6 +59,7 @@ class Mints(app_commands.Group):
             f"{admins_to_ping}, please add `{release_id}`, link:`{link}`, time: `{mint_time}`", view=view)
 
 
+@app_commands.guild_only()
 class Wallets(app_commands.Group):
     @app_commands.command(name="send", description="Send wallets separated by commas for chosen release")
     async def send_wallets(self, interaction: discord.Interaction, release_id: str, wallets: str):
@@ -130,6 +132,7 @@ class Wallets(app_commands.Group):
             f"Successfully deleted {counter - len(mint.wallets[member_id])} wallets")
 
 
+@app_commands.guild_only()
 class Payments(app_commands.Group):
     @app_commands.command(name="pay", description="Make payment for chosen release and amount of checkouts")
     async def pay(self, interaction: discord.Interaction, release_name: str, amount_to_pay: float,
@@ -181,7 +184,7 @@ class Payments(app_commands.Group):
             member = get_data_by_id_from_list(user.id, aco_members)
 
         if member is None:
-            await interaction.response.send_message("Nothing to see, take your first ACO!", ephemeral=True)
+            await interaction.response.send_message("Nothing to see here, take your first ACO!", ephemeral=True)
             return
 
         await interaction.response.send_message(embed=embeds.unpaid_successes(member))

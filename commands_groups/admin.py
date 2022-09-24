@@ -7,28 +7,23 @@ from discord import app_commands
 
 from additions import embeds
 from additions.all_data import actual_mints, aco_members, all_mints, config
-from additions.functions import check_admin, get_mint_by_id, save_json, get_data_by_id_from_list, add_member, \
+from additions.checkers import admin_checker, owner_checker
+from additions.functions import get_mint_by_id, save_json, get_data_by_id_from_list, add_member, \
     get_member_name_by_id, add_mint_to_mints_list
 
 
+@app_commands.guild_only()
 class AdminMints(app_commands.Group):
     @app_commands.command(name="add", description="ADMIN COMMAND Add mint to mints list")
+    @app_commands.check(admin_checker)
     async def add_mint(self, interaction: discord.Interaction, release_id: str, wallets_limit: int, link: str = None,
                        timestamp: str = None):
-        if not check_admin(interaction.user.id):
-            await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
-                                                    ephemeral=True)
-            return
         await add_mint_to_mints_list(interaction, release_id, link, timestamp, wallets_limit)
 
     @app_commands.command(name="change-info", description="ADMIN COMMAND Change mint [id, link or time]")
+    @app_commands.check(admin_checker)
     async def change_mint_info(self, interaction: discord.Interaction, release_id: str, change_type: str,
                                new_value: str):
-        if not check_admin(interaction.user.id):
-            await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
-                                                    ephemeral=True)
-            return
-
         change_type = change_type.lower().strip()
         new_value = new_value.lower().strip()
         if change_type not in ["id", "link", "time"]:
@@ -52,11 +47,8 @@ class AdminMints(app_commands.Group):
                                                 ephemeral=True)
 
     @app_commands.command(name="get-all-mints-list", description="ADMIN COMMAND Get all mints")
+    @app_commands.check(admin_checker)
     async def get_mints_list(self, interaction: discord.Interaction):
-        if not check_admin(interaction.user.id):
-            await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
-                                                    ephemeral=True)
-            return
         data_to_send = '```\n'
         for mint in all_mints:
             data_to_send += f"{mint.id}\n"
@@ -64,6 +56,7 @@ class AdminMints(app_commands.Group):
         await interaction.response.send_message(data_to_send)
 
     @app_commands.command(name="delete", description="ADMIN COMMAND Delete mint from mints list")
+    @app_commands.check(admin_checker)
     async def delete_mint(self, interaction: discord.Interaction, release_id: str):
         for i in range(len(actual_mints)):
             mint_name = actual_mints[i].id
@@ -78,14 +71,11 @@ class AdminMints(app_commands.Group):
             await interaction.response.send_message(f"There are no releases named as {release_id}", ephemeral=True)
 
 
+@app_commands.guild_only()
 class AdminWallets(app_commands.Group):
     @app_commands.command(name="get-all", description="ADMIN COMMAND Get all wallets for specific release")
+    @app_commands.check(admin_checker)
     async def get_wallets(self, interaction: discord.Interaction, release_id: str):
-        if not check_admin(interaction.user.id):
-            await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
-                                                    ephemeral=True)
-            return
-
         mint = get_mint_by_id(release_id)
         if mint is None:
             await interaction.response.send_message(f"There are no releases named as {release_id}")
@@ -113,13 +103,11 @@ class AdminWallets(app_commands.Group):
         await interaction.response.send_message(files=[discord.File(txt_file_name), discord.File(csv_file_name)])
 
 
+@app_commands.guild_only()
 class AdminPayments(app_commands.Group):
     @app_commands.command(name="add-success", description="ADMIN COMMAND Add success to chosen release for chosen user")
+    @app_commands.check(admin_checker)
     async def add_success(self, interaction: discord.Interaction, release_name: str, amount: int, user: discord.Member):
-        if not check_admin(interaction.user.id):
-            await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
-                                                    ephemeral=True)
-            return
         mint = get_data_by_id_from_list(release_name, all_mints)
         if mint is None:
             await interaction.response.send_message(f"There are no releases named as {release_name}")
@@ -140,13 +128,11 @@ class AdminPayments(app_commands.Group):
             embed=embeds.success(user.name, release_name, member.payments[mint.id]["amount_of_checkouts"]))
 
 
+@app_commands.guild_only()
 class Admin(app_commands.Group):
     @app_commands.command(name="backup", description="ADMIN COMMAND just doing backup")
+    @app_commands.check(admin_checker)
     async def backup(self, interaction: discord.Interaction):
-        if not check_admin(interaction.user.id):
-            await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
-                                                    ephemeral=True)
-            return
         if not os.path.exists("data"):
             os.mkdir("data")
         files = [(actual_mints, "actual_mints.json"), (aco_members, "aco_members.json"), (all_mints, "all_mints.json")]
@@ -155,20 +141,14 @@ class Admin(app_commands.Group):
         await interaction.response.send_message(files=[discord.File(os.path.join("data", file[1])) for file in files])
 
     @app_commands.command(name="add", description="ADMIN COMMAND add member to admins list")
+    @app_commands.check(owner_checker)
     async def add(self, interaction: discord.Interaction, user: discord.Member):
-        if not (interaction.user.id in config.owners):
-            await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
-                                                    ephemeral=True)
-            return
         config.admins.append(user.id)
         await interaction.response.send_message(f"Added {user.name} to admins list")
 
     @app_commands.command(name="delete", description="ADMIN COMMAND add member to admins list")
+    @app_commands.check(owner_checker)
     async def delete(self, interaction: discord.Interaction, user: discord.Member):
-        if not (interaction.user.id in config.owners):
-            await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
-                                                    ephemeral=True)
-            return
         if user.id not in config.admins:
             await interaction.response.send_message(f"{user.name} is not admin", ephemeral=True)
         config.admins.remove(user.id)
