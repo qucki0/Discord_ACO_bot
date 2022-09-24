@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+from additions.all_data import config
 from commands_groups.admin import AdminMints, AdminWallets, Admin, AdminPayments
 from commands_groups.member import Mints, Wallets, Payments, ask_help
 
@@ -16,6 +17,6 @@ class DiscordClient(commands.Bot):
 
     async def on_ready(self):
         if not self.synced:
-            await self.tree.sync()
+            await self.tree.sync(guild=config.guild)
             self.synced = True
         print(f'{self.user} has connected to Discord!')

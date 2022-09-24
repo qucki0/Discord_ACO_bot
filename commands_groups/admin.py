@@ -1,12 +1,14 @@
 import csv
 import os
 import time
+from typing import Literal
 
 import discord
 from discord import app_commands
 
 from additions import embeds
 from additions.all_data import actual_mints, aco_members, all_mints, config
+from additions.autocomplete import release_id_autocomplete
 from additions.checkers import admin_checker, owner_checker
 from additions.functions import get_mint_by_id, save_json, get_data_by_id_from_list, add_member, \
     get_member_name_by_id, add_mint_to_mints_list
@@ -22,13 +24,11 @@ class AdminMints(app_commands.Group):
 
     @app_commands.command(name="change-info", description="ADMIN COMMAND Change mint [id, link or time]")
     @app_commands.check(admin_checker)
-    async def change_mint_info(self, interaction: discord.Interaction, release_id: str, change_type: str,
-                               new_value: str):
+    @app_commands.autocomplete(release_id=release_id_autocomplete)
+    async def change_mint_info(self, interaction: discord.Interaction, release_id: str,
+                               change_type: Literal["id", "link", "time"], new_value: str):
         change_type = change_type.lower().strip()
         new_value = new_value.lower().strip()
-        if change_type not in ["id", "link", "time"]:
-            await interaction.response.send_message("Invalid change type!", ephemeral=True)
-            return
 
         mint = get_mint_by_id(release_id)
         if mint is None:
@@ -57,6 +57,7 @@ class AdminMints(app_commands.Group):
 
     @app_commands.command(name="delete", description="ADMIN COMMAND Delete mint from mints list")
     @app_commands.check(admin_checker)
+    @app_commands.autocomplete(release_id=release_id_autocomplete)
     async def delete_mint(self, interaction: discord.Interaction, release_id: str):
         for i in range(len(actual_mints)):
             mint_name = actual_mints[i].id
@@ -75,6 +76,7 @@ class AdminMints(app_commands.Group):
 class AdminWallets(app_commands.Group):
     @app_commands.command(name="get-all", description="ADMIN COMMAND Get all wallets for specific release")
     @app_commands.check(admin_checker)
+    @app_commands.autocomplete(release_id=release_id_autocomplete)
     async def get_wallets(self, interaction: discord.Interaction, release_id: str):
         mint = get_mint_by_id(release_id)
         if mint is None:

@@ -49,7 +49,8 @@ def help_embeds():
                              value="Параметры не требуются.")
     payments_embed.add_field(name="**/payment pay** - оплата за ваши чекауты.",
                              value="*release_name:* **«Название релиза»**\n"
-                                   "*amount_to_pay:* **«Количество SOL»**")
+                                   "*amount_to_pay:* **«Количество SOL»**\n"
+                                   "*checkouts_quantity:* **«Количество чекаутов для оплаты»**")
     return mints_embed, wallets_embed, payments_embed
 
 

@@ -3,6 +3,7 @@ from discord import app_commands
 
 from additions import embeds
 from additions.all_data import actual_mints, aco_members, config
+from additions.autocomplete import release_id_autocomplete, unpaid_release_ids_autocomplete
 from additions.functions import check_admin, get_mint_by_id, get_data_by_id_from_list, add_member, \
     add_mint_to_mints_list, check_mint_exist
 
@@ -62,6 +63,7 @@ class Mints(app_commands.Group):
 @app_commands.guild_only()
 class Wallets(app_commands.Group):
     @app_commands.command(name="send", description="Send wallets separated by commas for chosen release")
+    @app_commands.autocomplete(release_id=release_id_autocomplete)
     async def send_wallets(self, interaction: discord.Interaction, release_id: str, wallets: str):
         member_id = interaction.user.id
         member = get_data_by_id_from_list(interaction.user.id, aco_members)
@@ -92,6 +94,7 @@ class Wallets(app_commands.Group):
             f" other {len(wallets) - (len(mint.wallets[member_id]) - number_of_wallets)} already exist")
 
     @app_commands.command(name="check", description="Check the wallets that you sent")
+    @app_commands.autocomplete(release_id=release_id_autocomplete)
     async def check_wallets(self, interaction: discord.Interaction, release_id: str):
         mint = get_mint_by_id(release_id)
         if mint is None:
@@ -110,6 +113,7 @@ class Wallets(app_commands.Group):
 
     @app_commands.command(name="delete",
                           description='Delete wallets separated by commas for chosen release, "all" for all')
+    @app_commands.autocomplete(release_id=release_id_autocomplete)
     async def delete_wallets(self, interaction: discord.Interaction, release_id: str, wallets: str):
         mint = get_mint_by_id(release_id)
         if mint is None:
@@ -135,12 +139,16 @@ class Wallets(app_commands.Group):
 @app_commands.guild_only()
 class Payments(app_commands.Group):
     @app_commands.command(name="pay", description="Make payment for chosen release and amount of checkouts")
-    async def pay(self, interaction: discord.Interaction, release_name: str, amount_to_pay: float,
+    @app_commands.autocomplete(release_id=unpaid_release_ids_autocomplete)
+    async def pay(self, interaction: discord.Interaction, release_id: str, amount_to_pay: float,
                   checkouts_quantity: int):
         button = discord.ui.Button(label="Confirm", style=discord.ButtonStyle.green)
         member_id = interaction.user.id
         member = get_data_by_id_from_list(member_id, aco_members)
-        if checkouts_quantity > member.payments[release_name]["unpaid_amount"] or checkouts_quantity <= 0:
+        if release_id not in member.payments:
+            await interaction.response.send_message(f"There are no releases named as {release_id}")
+            return
+        if checkouts_quantity > member.payments[release_id]["unpaid_amount"] or checkouts_quantity <= 0:
             await interaction.response.send_message("Wrong checkouts quantity", ephemeral=True)
             return
 
@@ -158,10 +166,10 @@ class Payments(app_commands.Group):
                     "You do not have enough permissions to do perform this operation.", ephemeral=True)
                 return
 
-            member.payments[release_name]["unpaid_amount"] = max(0, member.payments[release_name][
+            member.payments[release_id]["unpaid_amount"] = max(0, member.payments[release_id][
                 "unpaid_amount"] - checkouts_quantity)
             await second_interaction.response.edit_message(
-                content=f"Payment *{amount_to_pay} $SOL* for `{release_name}` successful", view=None)
+                content=f"Payment *{amount_to_pay} $SOL* for `{release_id}` successful", view=None)
 
         button.callback = first_response
         view = discord.ui.View(timeout=None)
