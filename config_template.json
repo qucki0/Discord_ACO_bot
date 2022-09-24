@@ -1,0 +1,13 @@
+{
+  "token": "your_token",
+  "admin_ids": [
+    123,
+    234
+  ],
+  "alert_channel_id": 567,
+  "owner_ids": [
+    123,
+    234
+  ],
+  "guild_id": 123
+}

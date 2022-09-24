@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 from commands_groups.admin import AdminMints, AdminWallets, Admin, AdminPayments
-from commands_groups.member import Mints, Wallets, Payments
+from commands_groups.member import Mints, Wallets, Payments, ask_help
 
 
 class DiscordClient(commands.Bot):
@@ -10,6 +10,7 @@ class DiscordClient(commands.Bot):
         super().__init__(intents=discord.Intents.all(), command_prefix=prefix)
         self.synced = False
         groups = [AdminMints, AdminWallets, Admin, AdminPayments, Mints, Wallets, Payments]
+        self.tree.add_command(ask_help)
         for group in groups:
             self.tree.add_command(group())
 

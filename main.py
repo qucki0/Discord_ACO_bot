@@ -1,5 +1,5 @@
-import config
+from additions.all_data import config
 from discord_client import DiscordClient
 
-client = DiscordClient(config.PREFIX)
-client.run(config.TOKEN)
+client = DiscordClient()
+client.run(config.token)

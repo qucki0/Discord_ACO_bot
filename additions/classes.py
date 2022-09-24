@@ -1,3 +1,5 @@
+import json
+
 import discord
 
 from additions import embeds
@@ -66,3 +68,14 @@ class ACOMember:
                 "payments": self.payments
                 }
         return data
+
+
+class Config:
+    def __init__(self):
+        with open("config.json") as file:
+            json_data = json.loads(file.read())
+        self.token = json_data["token"]
+        self.admins = json_data["admin_ids"]
+        self.owners = json_data["owner_ids"]
+        self.alert_channel_id = json_data["alert_channel_id"]
+        self.guild = discord.Object(id=json_data["guild_id"])

@@ -1,9 +1,8 @@
 import discord
 from discord import app_commands
 
-import config
 from additions import embeds
-from additions.all_data import actual_mints, aco_members
+from additions.all_data import actual_mints, aco_members, config
 from additions.functions import check_admin, get_mint_by_id, get_data_by_id_from_list, add_member, \
     add_mint_to_mints_list, check_mint_exist
 
@@ -25,7 +24,7 @@ class Mints(app_commands.Group):
         if check_mint_exist(release_id):
             await interaction.response.send_message(f"`{release_id}` already exist!", ephemeral=True)
             return
-        for admin_id in config.ADMINS_IDS:
+        for admin_id in config.admins:
             admins_to_ping += "<@" + str(admin_id) + "> "
         accept_button = discord.ui.Button(label="Accept", style=discord.ButtonStyle.green)
         reject_button = discord.ui.Button(label="Reject", style=discord.ButtonStyle.red)
@@ -144,7 +143,7 @@ class Payments(app_commands.Group):
 
         async def first_response(first_interaction: discord.Interaction):
             admins_to_ping = ""
-            for admin_id in config.ADMINS_IDS:
+            for admin_id in config.admins:
                 admins_to_ping += "<@" + str(admin_id) + "> "
             button.callback = second_response
             await first_interaction.response.edit_message(
@@ -156,7 +155,8 @@ class Payments(app_commands.Group):
                     "You do not have enough permissions to do perform this operation.", ephemeral=True)
                 return
 
-            member.payments[release_name]["unpaid_amount"] -= checkouts_quantity
+            member.payments[release_name]["unpaid_amount"] = max(0, member.payments[release_name][
+                "unpaid_amount"] - checkouts_quantity)
             await second_interaction.response.edit_message(
                 content=f"Payment *{amount_to_pay} $SOL* for `{release_name}` successful", view=None)
 
@@ -185,3 +185,8 @@ class Payments(app_commands.Group):
             return
 
         await interaction.response.send_message(embed=embeds.unpaid_successes(member))
+
+
+@app_commands.command(name="help", description="Displays the description of supported commands")
+async def ask_help(interaction: discord.Interaction):
+    await interaction.response.send_message(embeds=embeds.help_embeds())

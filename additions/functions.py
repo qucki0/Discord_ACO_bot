@@ -3,13 +3,12 @@ import os
 
 import discord
 
-import config
-from additions.all_data import actual_mints, aco_members, all_mints
+from additions.all_data import actual_mints, aco_members, all_mints, config
 from additions.classes import ACOMember, Drop
 
 
 def check_admin(member_id):
-    return member_id in config.ADMINS_IDS
+    return member_id in config.admins
 
 
 def get_mint_by_id(release_name):
@@ -48,7 +47,7 @@ async def add_mint_to_mints_list(interaction: discord.Interaction, release_id, l
         mint = Drop(release_id, link, timestamp, wallets_limit)
         actual_mints.append(mint)
         all_mints.append(mint)
-        await interaction.client.get_channel(config.ALERT_CHANNEL_ID).send("New mint found", embed=mint.get_as_embed())
+        await interaction.client.get_channel(config.alert_channel_id).send("New mint found", embed=mint.get_as_embed())
         await interaction.response.send_message(f"Added `{release_id}` to drop list!", ephemeral=True)
 
 

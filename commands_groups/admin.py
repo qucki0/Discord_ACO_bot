@@ -5,9 +5,8 @@ import time
 import discord
 from discord import app_commands
 
-import config
 from additions import embeds
-from additions.all_data import actual_mints, aco_members, all_mints
+from additions.all_data import actual_mints, aco_members, all_mints, config
 from additions.functions import check_admin, get_mint_by_id, save_json, get_data_by_id_from_list, add_member, \
     get_member_name_by_id, add_mint_to_mints_list
 
@@ -47,7 +46,7 @@ class AdminMints(app_commands.Group):
             mint.link = new_value
         if change_type == "time":
             mint.timestamp = new_value
-        await interaction.client.get_channel(config.ALERT_CHANNEL_ID).send("Something changed, check it!",
+        await interaction.client.get_channel(config.alert_channel_id).send("Something changed, check it!",
                                                                            embed=mint.get_as_embed())
         await interaction.response.send_message(f"Successfully changed {change_type} to {new_value}",
                                                 ephemeral=True)
@@ -157,24 +156,20 @@ class Admin(app_commands.Group):
 
     @app_commands.command(name="add", description="ADMIN COMMAND add member to admins list")
     async def add(self, interaction: discord.Interaction, user: discord.Member):
-        if not (interaction.user.id in config.ADMIN_ACCESS):  # temporary solution
+        if not (interaction.user.id in config.owners):
             await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
                                                     ephemeral=True)
             return
-        config.ADMINS_IDS.append(user.id)
+        config.admins.append(user.id)
         await interaction.response.send_message(f"Added {user.name} to admins list")
 
     @app_commands.command(name="delete", description="ADMIN COMMAND add member to admins list")
     async def delete(self, interaction: discord.Interaction, user: discord.Member):
-        if not (interaction.user.id in config.ADMIN_ACCESS):  # temporary solution
+        if not (interaction.user.id in config.owners):
             await interaction.response.send_message("You do not have enough permissions to do perform this operation.",
                                                     ephemeral=True)
             return
-        if user.id not in config.ADMINS_IDS:
+        if user.id not in config.admins:
             await interaction.response.send_message(f"{user.name} is not admin", ephemeral=True)
-        config.ADMINS_IDS.remove(user.id)
+        config.admins.remove(user.id)
         await interaction.response.send_message(f"Deleted {user.name} from admins list", ephemeral=True)
-
-    @app_commands.command(name="help", description="ADMIN COMMAND help")
-    async def delete(self, interaction: discord.Interaction):
-        await interaction.response.send_message(embeds=embeds.help_embeds())

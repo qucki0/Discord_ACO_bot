@@ -1,7 +1,7 @@
 import json
 import os
 
-from additions.classes import Drop, ACOMember
+from additions.classes import Drop, ACOMember, Config
 
 
 def get_list_from_json(file_name, inner_class):
@@ -19,3 +19,4 @@ def get_list_from_json(file_name, inner_class):
 actual_mints = get_list_from_json(os.path.join("data", "actual_mints.json"), Drop)
 aco_members = get_list_from_json(os.path.join("data", "aco_members.json"), ACOMember)
 all_mints = get_list_from_json(os.path.join("data", "all_mints.json"), Drop)
+config = Config()
