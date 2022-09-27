@@ -18,6 +18,10 @@ from additions.functions import get_mint_by_id, save_json, get_data_by_id_from_l
 class AdminMints(app_commands.Group):
     @app_commands.command(name="add", description="ADMIN COMMAND Add mint to mints list")
     @app_commands.check(admin_checker)
+    @app_commands.describe(release_id="Mint name",
+                           wallets_limit="Limit of wallets we can handle",
+                           link="Mint link",
+                           timestamp="Drop timestamp")
     async def add_mint(self, interaction: discord.Interaction, release_id: str, wallets_limit: int, link: str = None,
                        timestamp: str = None):
         await add_mint_to_mints_list(interaction, release_id, link, timestamp, wallets_limit)
@@ -25,6 +29,9 @@ class AdminMints(app_commands.Group):
     @app_commands.command(name="change-info", description="ADMIN COMMAND Change mint [id, link or time]")
     @app_commands.check(admin_checker)
     @app_commands.autocomplete(release_id=release_id_autocomplete)
+    @app_commands.describe(release_id="Mint name from /admin-mints get-all-mints-list or /mints get-all",
+                           change_type="Change type",
+                           new_value="Value that will be set")
     async def change_mint_info(self, interaction: discord.Interaction, release_id: str,
                                change_type: Literal["id", "link", "time"], new_value: str):
         change_type = change_type.lower().strip()
@@ -58,6 +65,7 @@ class AdminMints(app_commands.Group):
     @app_commands.command(name="delete", description="ADMIN COMMAND Delete mint from mints list")
     @app_commands.check(admin_checker)
     @app_commands.autocomplete(release_id=release_id_autocomplete)
+    @app_commands.describe(release_id="Mint name only from /mints get-all")
     async def delete_mint(self, interaction: discord.Interaction, release_id: str):
         for i in range(len(actual_mints)):
             mint_name = actual_mints[i].id
@@ -77,6 +85,7 @@ class AdminWallets(app_commands.Group):
     @app_commands.command(name="get-all", description="ADMIN COMMAND Get all wallets for specific release")
     @app_commands.check(admin_checker)
     @app_commands.autocomplete(release_id=release_id_autocomplete)
+    @app_commands.describe(release_id="Mint name only from /mints get-all")
     async def get_wallets(self, interaction: discord.Interaction, release_id: str):
         mint = get_mint_by_id(release_id)
         if mint is None:
@@ -109,10 +118,12 @@ class AdminWallets(app_commands.Group):
 class AdminPayments(app_commands.Group):
     @app_commands.command(name="add-success", description="ADMIN COMMAND Add success to chosen release for chosen user")
     @app_commands.check(admin_checker)
-    async def add_success(self, interaction: discord.Interaction, release_name: str, amount: int, user: discord.Member):
-        mint = get_data_by_id_from_list(release_name, all_mints)
+    @app_commands.describe(release_id="Mint name from /admin-mints get-all-mints-list or /mints get-all",
+                           amount="amount of checkouts")
+    async def add_success(self, interaction: discord.Interaction, release_id: str, amount: int, user: discord.Member):
+        mint = get_data_by_id_from_list(release_id, all_mints)
         if mint is None:
-            await interaction.response.send_message(f"There are no releases named as {release_name}")
+            await interaction.response.send_message(f"There are no releases named as {release_id}")
             return
         member = get_data_by_id_from_list(user.id, aco_members)
         if member is None:
@@ -127,7 +138,7 @@ class AdminPayments(app_commands.Group):
         mint.checkouts += amount
         await interaction.response.send_message(f"Added {amount} checkouts", ephemeral=True)
         await interaction.client.get_channel(interaction.channel_id).send(
-            embed=embeds.success(user.name, release_name, member.payments[mint.id]["amount_of_checkouts"]))
+            embed=embeds.success(user.name, release_id, member.payments[mint.id]["amount_of_checkouts"]))
 
 
 @app_commands.guild_only()
@@ -144,12 +155,14 @@ class Admin(app_commands.Group):
 
     @app_commands.command(name="add", description="ADMIN COMMAND add member to admins list")
     @app_commands.check(owner_checker)
+    @app_commands.describe(user="User that will receive admin role")
     async def add(self, interaction: discord.Interaction, user: discord.Member):
         config.admins.append(user.id)
         await interaction.response.send_message(f"Added {user.name} to admins list")
 
     @app_commands.command(name="delete", description="ADMIN COMMAND add member to admins list")
     @app_commands.check(owner_checker)
+    @app_commands.describe(user="User that will lose admin role")
     async def delete(self, interaction: discord.Interaction, user: discord.Member):
         if user.id not in config.admins:
             await interaction.response.send_message(f"{user.name} is not admin", ephemeral=True)

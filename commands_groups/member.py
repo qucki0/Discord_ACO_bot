@@ -20,6 +20,9 @@ class Mints(app_commands.Group):
                 embeds=data_to_send[10 * i:min(10 * (i + 1), len(data_to_send))])
 
     @app_commands.command(name="request", description="Create request to add mint")
+    @app_commands.describe(release_id="Name of release you want to request",
+                           link="Link for mint page if you got",
+                           mint_time="Mint timestamp you can use https://www.epochconverter.com/ for it")
     async def request_mint(self, interaction: discord.Interaction, release_id: str, link: str = None,
                            mint_time: str = None):
         admins_to_ping = ""
@@ -64,6 +67,8 @@ class Mints(app_commands.Group):
 class Wallets(app_commands.Group):
     @app_commands.command(name="send", description="Send wallets separated by commas for chosen release")
     @app_commands.autocomplete(release_id=release_id_autocomplete)
+    @app_commands.describe(release_id="Release name from /mints get-all",
+                           wallets="Your wallets private keys separated by comma")
     async def send_wallets(self, interaction: discord.Interaction, release_id: str, wallets: str):
         member_id = interaction.user.id
         member = get_data_by_id_from_list(interaction.user.id, aco_members)
@@ -95,6 +100,7 @@ class Wallets(app_commands.Group):
 
     @app_commands.command(name="check", description="Check the wallets that you sent")
     @app_commands.autocomplete(release_id=release_id_autocomplete)
+    @app_commands.describe(release_id="Release name from /mints get-all")
     async def check_wallets(self, interaction: discord.Interaction, release_id: str):
         mint = get_mint_by_id(release_id)
         if mint is None:
@@ -114,6 +120,8 @@ class Wallets(app_commands.Group):
     @app_commands.command(name="delete",
                           description='Delete wallets separated by commas for chosen release, "all" for all')
     @app_commands.autocomplete(release_id=release_id_autocomplete)
+    @app_commands.describe(release_id="Release name from /mints get-all",
+                           wallets='Private keys that you want to delete. Use "all" for select all wallets')
     async def delete_wallets(self, interaction: discord.Interaction, release_id: str, wallets: str):
         mint = get_mint_by_id(release_id)
         if mint is None:
@@ -140,6 +148,9 @@ class Wallets(app_commands.Group):
 class Payments(app_commands.Group):
     @app_commands.command(name="pay", description="Make payment for chosen release and amount of checkouts")
     @app_commands.autocomplete(release_id=unpaid_release_ids_autocomplete)
+    @app_commands.describe(release_id="Release name from /payments check-payments",
+                           amount_to_pay="Amount that you want to pay in $SOL",
+                           checkouts_quantity="The amount of checkouts you want to pay.")
     async def pay(self, interaction: discord.Interaction, release_id: str, amount_to_pay: float,
                   checkouts_quantity: int):
         button = discord.ui.Button(label="Confirm", style=discord.ButtonStyle.green)
@@ -187,7 +198,8 @@ class Payments(app_commands.Group):
         else:
             if not check_admin(interaction.user.id):
                 await interaction.response.send_message(
-                    "You do not have enough permissions to do perform this operation.", ephemeral=True)
+                    "It's opportunity for admins to check unpaid successes for specific user. "
+                    "Just use `/payments check-payments` without parameters to check your payments", ephemeral=True)
                 return
             member = get_data_by_id_from_list(user.id, aco_members)
 
@@ -199,5 +211,6 @@ class Payments(app_commands.Group):
 
 
 @app_commands.command(name="help", description="Displays the description of supported commands")
+@app_commands.guild_only()
 async def ask_help(interaction: discord.Interaction):
     await interaction.response.send_message(embeds=embeds.help_embeds())

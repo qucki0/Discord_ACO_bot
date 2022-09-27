@@ -78,4 +78,3 @@ class Config:
         self.admins = json_data["admin_ids"]
         self.owners = json_data["owner_ids"]
         self.alert_channel_id = json_data["alert_channel_id"]
-        self.guild = discord.Object(id=json_data["guild_id"])
