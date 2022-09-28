@@ -1,9 +1,10 @@
 import json
 import os
+import time
 
 import discord
 
-from additions.all_data import actual_mints, aco_members, all_mints, config
+from additions.all_data import actual_mints, aco_members, all_mints, config, backup_data
 from additions.classes import ACOMember, Drop
 
 
@@ -55,3 +56,16 @@ def check_mint_exist(release_id):
 def save_json(arr, filename):
     with open(os.path.join("data", filename), "w") as file:
         file.write(json.dumps(get_list_for_backup(arr), sort_keys=True, indent=4))
+
+
+async def do_backup(interaction: discord.Interaction, skip_timestamp=False):
+    if backup_data.last_backup_timestamp + config.seconds_between_backups > time.time() and not skip_timestamp:
+        return
+    if not os.path.exists("data"):
+        os.mkdir("data")
+    files_to_send = []
+    for file in backup_data.files_to_backup:
+        save_json(*file)
+        files_to_send.append(discord.File(os.path.join("data", file[1])))
+    await interaction.client.get_channel(config.backup_channel_id).send(files=files_to_send)
+    backup_data.last_backup_timestamp = int(time.time())

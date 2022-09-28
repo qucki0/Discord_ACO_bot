@@ -10,8 +10,8 @@ from additions import embeds
 from additions.all_data import actual_mints, aco_members, all_mints, config
 from additions.autocomplete import release_id_autocomplete
 from additions.checkers import admin_checker, owner_checker
-from additions.functions import get_mint_by_id, save_json, get_data_by_id_from_list, add_member, \
-    get_member_name_by_id, add_mint_to_mints_list
+from additions.functions import get_mint_by_id, get_data_by_id_from_list, add_member, \
+    get_member_name_by_id, add_mint_to_mints_list, do_backup
 
 
 @app_commands.guild_only()
@@ -152,12 +152,8 @@ class Admin(app_commands.Group):
     @app_commands.command(name="backup", description="ADMIN COMMAND just doing backup")
     @app_commands.check(admin_checker)
     async def backup(self, interaction: discord.Interaction):
-        if not os.path.exists("data"):
-            os.mkdir("data")
-        files = [(actual_mints, "actual_mints.json"), (aco_members, "aco_members.json"), (all_mints, "all_mints.json")]
-        for file in files:
-            save_json(*file)
-        await interaction.response.send_message(files=[discord.File(os.path.join("data", file[1])) for file in files])
+        await do_backup(interaction, skip_timestamp=True)
+        await interaction.response.send_message(f"Backup successful, check <#{config.backup_channel_id}>")
 
     @app_commands.command(name="add", description="ADMIN COMMAND add member to admins list")
     @app_commands.check(owner_checker)

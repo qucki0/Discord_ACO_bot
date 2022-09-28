@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import discord
 from pydantic import BaseModel
 
@@ -74,3 +76,11 @@ class Config(BaseModel):
     admins: list[int]
     owners: list[int]
     alert_channel_id: int
+    seconds_between_backups: int
+    backup_channel_id: int
+
+
+@dataclass
+class BackupData:
+    last_backup_timestamp: int
+    files_to_backup: list[tuple[list, str]]

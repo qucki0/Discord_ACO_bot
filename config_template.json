@@ -8,5 +8,7 @@
   "owners": [
     123,
     234
-  ]
+  ],
+  "seconds_between_backups": 600,
+  "backup_channel_id": 123456
 }
