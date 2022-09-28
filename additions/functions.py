@@ -34,10 +34,7 @@ def get_member_name_by_id(member_id):
 
 
 def get_list_for_backup(arr):
-    data = []
-    for a in arr:
-        data.append(a.get_as_dict())
-    return data
+    return [a.get_as_dict() for a in arr]
 
 
 async def add_mint_to_mints_list(interaction: discord.Interaction, release_id, link, timestamp, wallets_limit=10):

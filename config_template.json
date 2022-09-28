@@ -1,11 +1,11 @@
 {
   "token": "your_token",
-  "admin_ids": [
+  "admins": [
     123,
     234
   ],
   "alert_channel_id": 567,
-  "owner_ids": [
+  "owners": [
     123,
     234
   ]

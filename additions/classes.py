@@ -1,6 +1,5 @@
-import json
-
 import discord
+from pydantic import BaseModel
 
 from additions import embeds
 
@@ -70,11 +69,8 @@ class ACOMember:
         return data
 
 
-class Config:
-    def __init__(self):
-        with open("config.json") as file:
-            json_data = json.loads(file.read())
-        self.token = json_data["token"]
-        self.admins = json_data["admin_ids"]
-        self.owners = json_data["owner_ids"]
-        self.alert_channel_id = json_data["alert_channel_id"]
+class Config(BaseModel):
+    token: str
+    admins: list[int]
+    owners: list[int]
+    alert_channel_id: int
