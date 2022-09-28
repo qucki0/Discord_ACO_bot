@@ -192,21 +192,8 @@ class Payments(app_commands.Group):
             view=view)
 
     @app_commands.command(name="check-payments", description="Command to check your unpaid successes")
-    async def check_payments(self, interaction: discord.Interaction, user: discord.Member = None):
-        if user is None:
-            member = get_data_by_id_from_list(interaction.user.id, aco_members)
-        else:
-            if not check_admin(interaction.user.id):
-                await interaction.response.send_message(
-                    "It's opportunity for admins to check unpaid successes for specific user. "
-                    "Just use `/payments check-payments` without parameters to check your payments", ephemeral=True)
-                return
-            member = get_data_by_id_from_list(user.id, aco_members)
-
-        if member is None:
-            await interaction.response.send_message("Nothing to see here, take your first ACO!", ephemeral=True)
-            return
-
+    async def check_payments(self, interaction: discord.Interaction):
+        member = get_data_by_id_from_list(interaction.user.id, aco_members)
         await interaction.response.send_message(embed=embeds.unpaid_successes(member))
 
 

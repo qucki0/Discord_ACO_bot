@@ -14,14 +14,13 @@ def mint_data(mint_id, link, timestamp, wallets_limit):
 
 
 def unpaid_successes(member):
-    description = ""
-    for key in member.payments:
+    if member is None:
+        return discord.Embed(title=f"New member unpaid successes", colour=discord.Colour.red(),
+                             description="Nothing to see here;)")
+    embed = discord.Embed(title=f"{member.name} Unpaid Successes", colour=discord.Colour.red())
+    for i, key in enumerate(member.payments):
         if member.payments[key]["unpaid_amount"]:
-            description += f"{key}, {member.payments[key]['unpaid_amount']} successes\n\n"
-    if not description:
-        description = "All your successes has already been paid"
-    embed = discord.Embed(title=f"{member.name} Unpaid Successes", colour=discord.Colour.red(),
-                          description=description)
+            embed.add_field(name=f"{key}:", value=member.payments[key]['unpaid_amount'], inline=i % 4 != 3)
     return embed
 
 

@@ -140,6 +140,12 @@ class AdminPayments(app_commands.Group):
         await interaction.client.get_channel(interaction.channel_id).send(
             embed=embeds.success(user.name, release_id, member.payments[mint.id]["amount_of_checkouts"]))
 
+    @app_commands.command(name="check-payments", description="Command to check your unpaid successes")
+    @app_commands.check(admin_checker)
+    async def check_payments(self, interaction: discord.Interaction, user: discord.Member):
+        member = get_data_by_id_from_list(user.id, aco_members)
+        await interaction.response.send_message(embed=embeds.unpaid_successes(member))
+
 
 @app_commands.guild_only()
 class Admin(app_commands.Group):
