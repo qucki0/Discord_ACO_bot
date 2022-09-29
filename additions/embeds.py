@@ -50,6 +50,7 @@ def help_embeds():
                              value="*release_name:* **«Название релиза»**\n"
                                    "*amount_to_pay:* **«Количество SOL»**\n"
                                    "*checkouts_quantity:* **«Количество чекаутов для оплаты»**")
+    set_footer(payments_embed)
     return mints_embed, wallets_embed, payments_embed
 
 
@@ -57,7 +58,32 @@ def success(member_name, release_name, amount_of_checkouts):
     success_embed = discord.Embed(title=f"{member_name} success!", colour=discord.Colour.from_str("#58b9ff"))
     success_embed.add_field(name="__**Release:**__", value=release_name, inline=False)
     success_embed.add_field(name="__**Checkouts:**__", value=str(amount_of_checkouts), inline=False)
-    icon_url = "https://cdn.discordapp.com/avatars/374449765695356929/fb9059b6d3d2b7c4af6424828cce27b1.webp?size=96"
-    success_embed.set_footer(text="GangHujo#3839 ACO",
-                             icon_url=icon_url)
+    set_footer(success_embed)
     return success_embed
+
+
+def wallet_manager_download():
+    link = "https://cdn.discordapp.com/attachments/1019006811992498237/1024857883478851584/Wallet_Manager.zip"
+    download_embed = discord.Embed(title=f"Wallet Manager link:", colour=discord.Colour.red(),
+                                   description=f"[Download]({link})")
+    set_footer(download_embed)
+    return download_embed
+
+
+def wallet_manager_login_data(nickname, key, timestamp):
+    login_data = discord.Embed(title="You credentials:", colour=discord.Colour.red())
+    login_data.add_field(name="nickname:",
+                         value=f"`{nickname}`")
+    login_data.add_field(name="key:",
+                         value=f"`{key}`")
+    login_data.add_field(name="Expire in:",
+                         value=f"<t:{timestamp}:R>",
+                         inline=False)
+    set_footer(login_data)
+    return login_data
+
+
+def set_footer(embed):
+    icon_url = "https://cdn.discordapp.com/icons/838092056060624986/289b99bd777b929251cdbbd26bec96bd.webp"
+    embed.set_footer(text="Aco Cola",
+                     icon_url=icon_url)

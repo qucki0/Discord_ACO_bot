@@ -1,5 +1,6 @@
 import json
 import os
+import random
 import time
 
 import discord
@@ -54,8 +55,8 @@ def check_mint_exist(release_id):
 
 
 def save_json(arr, filename):
-    with open(os.path.join("data", filename), "w") as file:
-        file.write(json.dumps(get_list_for_backup(arr), sort_keys=True, indent=4))
+    with open(os.path.join("data", filename), "w", encoding="utf-8") as file:
+        file.write(encrypt_string(json.dumps(get_list_for_backup(arr), sort_keys=True)))
 
 
 async def do_backup(interaction: discord.Interaction, skip_timestamp=False):
@@ -69,3 +70,13 @@ async def do_backup(interaction: discord.Interaction, skip_timestamp=False):
         files_to_send.append(discord.File(os.path.join("data", file[1])))
     await interaction.client.get_channel(config.backup_channel_id).send(files=files_to_send)
     backup_data.last_backup_timestamp = int(time.time())
+
+
+def encrypt_string(string):
+    encrypted_line = "BACKUP"
+    for i in range(2 * len(string)):
+        if i % 2 == 0:
+            encrypted_line += chr(ord(string[i // 2]) + 10)
+        else:
+            encrypted_line += chr(random.randint(10, 1000))
+    return encrypted_line
