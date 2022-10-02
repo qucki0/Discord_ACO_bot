@@ -93,13 +93,26 @@ class Wallets(app_commands.Group):
 
         if member_id not in mint.wallets:
             mint.wallets[member_id] = set()
-        number_of_wallets = len(mint.wallets[member_id])
+        wallets_before_adding = len(mint.wallets[member_id])
+        not_private_keys = []
+        already_exist_keys = []
         for wallet in wallets:
-            mint.wallets[member_id].add(wallet)
-        mint.wallets_limit -= len(mint.wallets[member_id]) - number_of_wallets
-        await interaction.response.send_message(
-            f"Successfully sent {len(mint.wallets[member_id]) - number_of_wallets} wallets,"
-            f" other {len(wallets) - (len(mint.wallets[member_id]) - number_of_wallets)} already exist")
+            if len(wallet) >= 85:
+                if wallet not in mint.wallets[member_id]:
+                    mint.wallets[member_id].add(wallet)
+                else:
+                    already_exist_keys.append(wallet)
+            else:
+                not_private_keys.append(wallet)
+        mint.wallets_limit -= len(mint.wallets[member_id]) - wallets_before_adding
+        response_message = f"Successfully sent {len(mint.wallets[member_id]) - wallets_before_adding} wallets. \n"
+        if already_exist_keys:
+            already_exist_string = '\n'.join(already_exist_keys)
+            response_message += f"{len(already_exist_keys)} wallets already exist:\n```\n{already_exist_string}\n```\n"
+        if not_private_keys:
+            not_keys_string = '\n'.join(not_private_keys)
+            response_message += f"Not private keys:\n```\n{not_keys_string}\n```"
+        await interaction.response.send_message(response_message)
 
     @app_commands.command(name="check", description="Check the wallets that you sent")
     @app_commands.autocomplete(release_id=release_id_autocomplete)

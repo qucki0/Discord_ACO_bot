@@ -1,5 +1,7 @@
 import discord
 
+from additions import all_data
+
 
 def mint_data(mint_id, link, timestamp, wallets_limit):
     embed = discord.Embed(title=f":bell:{mint_id}", colour=discord.Colour.dark_grey())
@@ -63,7 +65,7 @@ def success(member_name, release_name, amount_of_checkouts):
 
 
 def wallet_manager_download():
-    link = "https://cdn.discordapp.com/attachments/1019006811992498237/1024857883478851584/Wallet_Manager.zip"
+    link = all_data.config.wallet_manager_link
     download_embed = discord.Embed(title=f"Wallet Manager link:", colour=discord.Colour.red(),
                                    description=f"[Download]({link})")
     set_footer(download_embed)

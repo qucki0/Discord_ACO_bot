@@ -60,16 +60,21 @@ def save_json(arr, filename):
 
 
 async def do_backup(interaction: discord.Interaction, skip_timestamp=False):
-    if backup_data.last_backup_timestamp + config.seconds_between_backups > time.time() and not skip_timestamp:
-        return
-    if not os.path.exists("data"):
-        os.mkdir("data")
-    files_to_send = []
-    for file in backup_data.files_to_backup:
-        save_json(*file)
-        files_to_send.append(discord.File(os.path.join("data", file[1])))
-    await interaction.client.get_channel(config.backup_channel_id).send(files=files_to_send)
-    backup_data.last_backup_timestamp = int(time.time())
+    try:  # phantom error found, trying to figure it out
+        if backup_data.last_backup_timestamp + config.seconds_between_backups > time.time() and not skip_timestamp:
+            return
+        if not os.path.exists("data"):
+            os.mkdir("data")
+        files_to_send = []
+        for file in backup_data.files_to_backup:
+            save_json(*file)
+            files_to_send.append(discord.File(os.path.join("data", file[1])))
+        await interaction.client.get_channel(config.backup_channel_id).send(files=files_to_send)
+        backup_data.last_backup_timestamp = int(time.time())
+    except TypeError as ex:
+        print(ex)
+        for file in backup_data.files_to_backup:
+            print(get_list_for_backup(file[0]))
 
 
 def encrypt_string(string):

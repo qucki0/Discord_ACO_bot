@@ -34,5 +34,6 @@ aco_members = get_list_from_json(os.path.join("data", "aco_members.json"), ACOMe
 all_mints = get_list_from_json(os.path.join("data", "all_mints.json"), Drop)
 config = Config.parse_file("config.json")
 backup_data = BackupData(int(time.time()),
-                         [(actual_mints, "actual_mints.json"), (aco_members, "aco_members.json"),
+                         [(actual_mints, "actual_mints.json"),
+                          (aco_members, "aco_members.json"),
                           (all_mints, "all_mints.json")])

@@ -78,6 +78,7 @@ class Config(BaseModel):
     alert_channel_id: int
     seconds_between_backups: int
     backup_channel_id: int
+    wallet_manager_link: str
 
 
 @dataclass
