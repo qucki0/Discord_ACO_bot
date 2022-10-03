@@ -2,9 +2,11 @@ import json
 import os
 import time
 
-from additions.classes import Drop, ACOMember, Config, BackupData
+from classes.classes import Drop, ACOMember, Config, BackupData
+from functions.encryption import decrypt_string
 
 
+# to prevent circular import this function must be in this file
 def get_list_from_json(file_name, inner_class):
     if os.path.exists(file_name):
         with open(file_name, encoding="utf-8") as file:
@@ -18,15 +20,6 @@ def get_list_from_json(file_name, inner_class):
         return data
     else:
         return []
-
-
-def decrypt_string(string):
-    string = string[6:]
-    decrypted_line = ""
-    for i in range(len(string)):
-        if i % 2 == 0:
-            decrypted_line += chr(ord(string[i]) - 10)
-    return decrypted_line
 
 
 actual_mints = get_list_from_json(os.path.join("data", "actual_mints.json"), Drop)

@@ -1,7 +1,8 @@
 import discord
 
 from additions.all_data import config
-from additions.functions import check_admin, do_backup
+from functions.files import do_backup
+from functions.members import check_admin
 
 
 async def admin_checker(interaction: discord.Interaction):

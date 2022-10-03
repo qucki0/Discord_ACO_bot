@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 
 from additions.all_data import actual_mints, aco_members
-from additions.functions import get_data_by_id_from_list
+from functions.mints import get_data_by_id_from_list
 
 
 async def release_id_autocomplete(interaction: discord.Interaction, current: str):
