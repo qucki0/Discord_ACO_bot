@@ -1,4 +1,3 @@
-import csv
 import os
 import time
 from typing import Literal
@@ -11,7 +10,7 @@ from additions.all_data import actual_mints, aco_members, all_mints, config
 from additions.autocomplete import release_id_autocomplete
 from additions.checkers import admin_checker, owner_checker
 from additions.functions import get_mint_by_id, get_data_by_id_from_list, add_member, \
-    get_member_name_by_id, add_mint_to_mints_list, do_backup
+    get_member_name_by_id, add_mint_to_mints_list, do_backup, create_csv_from_dict
 
 
 @app_commands.guild_only()
@@ -26,14 +25,15 @@ class AdminMints(app_commands.Group):
                        timestamp: str = None):
         await add_mint_to_mints_list(interaction, release_id, link, timestamp, wallets_limit)
 
-    @app_commands.command(name="change-info", description="ADMIN COMMAND Change mint [id, link or time]")
+    @app_commands.command(name="change-info", description="ADMIN COMMAND Change mint [id, link, time or wallets limit]")
     @app_commands.check(admin_checker)
     @app_commands.autocomplete(release_id=release_id_autocomplete)
     @app_commands.describe(release_id="Mint name from /admin-mints get-all-mints-list or /mints get-all",
                            change_type="Change type",
-                           new_value="Value that will be set")
+                           new_value="Value that will be set. For wallet limit type + or"
+                                     " - than amount you want to add/delete. Example: +10 or -5")
     async def change_mint_info(self, interaction: discord.Interaction, release_id: str,
-                               change_type: Literal["id", "link", "time"], new_value: str):
+                               change_type: Literal["id", "link", "time", "wallets limit"], new_value: str):
         change_type = change_type.lower().strip()
         new_value = new_value.lower().strip()
 
@@ -48,6 +48,13 @@ class AdminMints(app_commands.Group):
             mint.link = new_value
         if change_type == "time":
             mint.timestamp = new_value
+        if change_type == "wallets limit":
+            amount = int(new_value)
+            if mint.wallets_limit + amount < 0:
+                await interaction.response.send_message(f"You can reduce wallets limit"
+                                                        f" no more than {mint.wallets_limit}", ephemeral=True)
+                return
+            mint.wallets_limit += amount
         await interaction.client.get_channel(config.alert_channel_id).send("Something changed, check it!",
                                                                            embed=mint.get_as_embed())
         await interaction.response.send_message(f"Successfully changed {change_type} to {new_value}",
@@ -94,24 +101,28 @@ class AdminWallets(app_commands.Group):
         base_wallets_dir = "wallets_to_send"
         wallets = ""
         wallets_as_dict = []
+        another_wallets_as_dict = []
         for member_id in mint.wallets:
             for i, wallet in enumerate(mint.wallets[member_id], 1):
                 wallets += f"{get_member_name_by_id(member_id)}{i}:{wallet}\n"
                 wallets_as_dict.append({"ALIAS": f"{get_member_name_by_id(member_id)}{i}",
                                         "PRIVATE_KEY": wallet})
+                another_wallets_as_dict.append({"Name": f"{get_member_name_by_id(member_id)}{i}",
+                                                "Private Key": wallet,
+                                                "Public Key": ""})
         if not os.path.exists(base_wallets_dir):
             os.mkdir(base_wallets_dir)
         timestamp = int(time.time())
-        txt_file_name = os.path.join(base_wallets_dir, f"{release_id}{timestamp}.txt")
-        csv_file_name = os.path.join(base_wallets_dir, f"{release_id}{timestamp}.csv")
+        txt_file_name = os.path.join(base_wallets_dir, f"{release_id}{timestamp}UR.txt")
+        csv_file_name = os.path.join(base_wallets_dir, f"{release_id}{timestamp}PP.csv")
+        another_csv_file_name = os.path.join(base_wallets_dir, f"{release_id}{timestamp}MS.csv")
         with open(txt_file_name, "w") as file:
             file.write(wallets)
-        with open(csv_file_name, "w", newline='') as csv_file:
-            csv_writer = csv.DictWriter(csv_file, fieldnames=wallets_as_dict[0].keys())
-            csv_writer.writeheader()
-            csv_writer.writerows(wallets_as_dict)
+        create_csv_from_dict(csv_file_name, wallets_as_dict)
+        create_csv_from_dict(another_csv_file_name, another_wallets_as_dict)
         time.sleep(1)
-        await interaction.response.send_message(files=[discord.File(txt_file_name), discord.File(csv_file_name)])
+        await interaction.response.send_message(files=[discord.File(txt_file_name), discord.File(csv_file_name),
+                                                       discord.File(another_csv_file_name)])
 
 
 @app_commands.guild_only()

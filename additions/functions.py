@@ -1,3 +1,4 @@
+import csv
 import json
 import os
 import random
@@ -85,3 +86,10 @@ def encrypt_string(string):
         else:
             encrypted_line += chr(random.randint(10, 1000))
     return encrypted_line
+
+
+def create_csv_from_dict(file_path, data_dict):
+    with open(file_path, "w", newline='') as csv_file:
+        csv_writer = csv.DictWriter(csv_file, fieldnames=data_dict[0].keys())
+        csv_writer.writeheader()
+        csv_writer.writerows(data_dict)
