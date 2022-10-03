@@ -20,7 +20,10 @@ class AdminWallets(app_commands.Group):
     async def get_wallets(self, interaction: discord.Interaction, release_id: str):
         mint = get_mint_by_id(release_id)
         if mint is None:
-            await interaction.response.send_message(f"There are no releases named as {release_id}")
+            await interaction.response.send_message(f"There are no releases named as `{release_id}`")
+            return
+        if not mint.wallets:
+            await interaction.response.send_message(f"There are no wallets for `{release_id}`")
             return
         base_wallets_dir = "wallets_to_send"
         wallets = ""
@@ -28,10 +31,11 @@ class AdminWallets(app_commands.Group):
         another_wallets_as_dict = []
         for member_id in mint.wallets:
             for i, wallet in enumerate(mint.wallets[member_id], 1):
-                wallets += f"{get_member_name_by_id(member_id)}{i}:{wallet}\n"
-                wallets_as_dict.append({"ALIAS": f"{get_member_name_by_id(member_id)}{i}",
+                member_name = get_member_name_by_id(member_id)
+                wallets += f"{member_name}{i}:{wallet}\n"
+                wallets_as_dict.append({"ALIAS": f"{member_name}{i}",
                                         "PRIVATE_KEY": wallet})
-                another_wallets_as_dict.append({"Name": f"{get_member_name_by_id(member_id)}{i}",
+                another_wallets_as_dict.append({"Name": f"{member_name}{i}",
                                                 "Private Key": wallet,
                                                 "Public Key": ""})
         if not os.path.exists(base_wallets_dir):

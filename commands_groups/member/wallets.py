@@ -16,7 +16,7 @@ class Wallets(app_commands.Group):
     @discord.app_commands.rename(release_id="release_name", wallets="private_keys")
     async def send_wallets(self, interaction: discord.Interaction, release_id: str, wallets: str):
         member_id = interaction.user.id
-        member = get_data_by_id_from_list(interaction.user.id, aco_members)
+        member = get_data_by_id_from_list(member_id, aco_members)
         if member is None:
             add_member(interaction.user)
 
@@ -89,16 +89,17 @@ class Wallets(app_commands.Group):
             return
         member_id = interaction.user.id
         if member_id not in mint.wallets:
-            await interaction.response.send_message(f"You need to submit wallets firstly!")
+            await interaction.response.send_message(f"First you need to send wallets!")
             return
 
-        counter = len(mint.wallets[member_id])
+        wallets_len_before_deleting = len(mint.wallets[member_id])
         if wallets.lower().strip() == "all":
             mint.wallets[member_id].clear()
         else:
             wallets_to_delete = [wallet.strip() for wallet in wallets.split(",")]
             for wallet in wallets_to_delete:
                 mint.wallets[member_id].discard(wallet)
-        mint.wallets_limit += counter - len(mint.wallets[member_id])
+        deleted_wallets = wallets_len_before_deleting - len(mint.wallets[member_id])
+        mint.wallets_limit += deleted_wallets
         await interaction.response.send_message(
-            f"Successfully deleted {counter - len(mint.wallets[member_id])} wallets")
+            f"Successfully deleted {deleted_wallets} wallets")

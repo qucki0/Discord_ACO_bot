@@ -41,7 +41,7 @@ class Mints(app_commands.Group):
             await add_mint_to_mints_list(accept_interaction, release_id, link, mint_timestamp)
             await interaction.delete_original_response()
             await accept_interaction.client.get_channel(accept_interaction.channel_id).send(
-                f":green_circle:Request for {release_id} Accepted")
+                f":green_circle:Request for `{release_id}` accepted")
 
         async def reject_response(reject_interaction: discord.Interaction):
             if not check_admin(reject_interaction.user.id):
