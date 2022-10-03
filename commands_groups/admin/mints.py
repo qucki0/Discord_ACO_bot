@@ -71,12 +71,14 @@ class AdminMints(app_commands.Group):
     @app_commands.autocomplete(release_id=release_id_autocomplete)
     @app_commands.describe(release_id="Mint name only from /mints get-all")
     async def delete_mint(self, interaction: discord.Interaction, release_id: str):
+
         for i in range(len(actual_mints)):
             mint_name = actual_mints[i].id
             if release_id.lower().strip() == mint_name.lower():
-                for file_name in os.listdir("wallets_to_send"):
-                    if file_name[:len(mint_name)] == mint_name:
-                        os.remove(os.path.join("wallets_to_send", file_name))
+                if os.path.exists("wallets_to_send"):
+                    for file_name in os.listdir("wallets_to_send"):
+                        if file_name[:len(mint_name)] == mint_name:
+                            os.remove(os.path.join("wallets_to_send", file_name))
                 actual_mints.pop(i)
                 await interaction.response.send_message(f"Deleted `{release_id}` from drop list!", ephemeral=True)
                 return

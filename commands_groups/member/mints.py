@@ -20,9 +20,10 @@ class Mints(app_commands.Group):
     @app_commands.command(name="request", description="Create request to add mint")
     @app_commands.describe(release_id="Name of release you want to request",
                            link="Link for mint page if you got",
-                           mint_time="Mint timestamp you can use https://www.epochconverter.com/ for it")
+                           mint_timestamp="You can use https://www.epochconverter.com/ to get timestamp in seconds")
+    @discord.app_commands.rename(release_id="release_name")
     async def request_mint(self, interaction: discord.Interaction, release_id: str, link: str = None,
-                           mint_time: str = None):
+                           mint_timestamp: str = None):
         admins_to_ping = ""
         if check_mint_exist(release_id):
             await interaction.response.send_message(f"`{release_id}` already exist!", ephemeral=True)
@@ -37,7 +38,7 @@ class Mints(app_commands.Group):
                 await accept_interaction.response.send_message(
                     "You do not have enough permissions to do perform this operation.", ephemeral=True)
                 return
-            await add_mint_to_mints_list(accept_interaction, release_id, link, mint_time)
+            await add_mint_to_mints_list(accept_interaction, release_id, link, mint_timestamp)
             await interaction.delete_original_response()
             await accept_interaction.client.get_channel(accept_interaction.channel_id).send(
                 f":green_circle:Request for {release_id} Accepted")
@@ -58,4 +59,4 @@ class Mints(app_commands.Group):
         view.add_item(reject_button)
 
         await interaction.response.send_message(
-            f"{admins_to_ping}, please add `{release_id}`, link:`{link}`, time: `{mint_time}`", view=view)
+            f"{admins_to_ping}, please add `{release_id}`, link:`{link}`, time: `{mint_timestamp}`", view=view)

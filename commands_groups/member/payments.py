@@ -15,6 +15,7 @@ class Payments(app_commands.Group):
     @app_commands.describe(release_id="Release name from /payments check-payments",
                            amount_to_pay="Amount that you want to pay in $SOL",
                            checkouts_quantity="The amount of checkouts you want to pay.")
+    @discord.app_commands.rename(release_id="release_name")
     async def pay(self, interaction: discord.Interaction, release_id: str, amount_to_pay: float,
                   checkouts_quantity: int):
         button = discord.ui.Button(label="Confirm", style=discord.ButtonStyle.green)
