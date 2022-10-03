@@ -17,11 +17,11 @@ class Drop:
             self.checkouts = 0
         else:
             self.id = json_file["id"]
-            self.wallets_limit = json_file["wallets_limit"]
+            self.wallets_limit = int(json_file["wallets_limit"])
             self.timestamp = json_file["timestamp"]
             self.link = json_file["link"]
-            self.wallets = {key: set(json_file["wallets"][key]) for key in json_file["wallets"]}
-            self.checkouts = json_file["checkouts"]
+            self.wallets = {int(key): set(json_file["wallets"][key]) for key in json_file["wallets"]}
+            self.checkouts = int(json_file["checkouts"])
 
     def get_as_dict(self):
         data = {"id": self.id,
@@ -57,7 +57,7 @@ class ACOMember:
             self.mints = {}
             self.payments = {}
         else:
-            self.id = json_file["id"]
+            self.id = int(json_file["id"])
             self.name = json_file["name"]
             self.mints = json_file["mints"]
             self.payments = json_file["payments"]
