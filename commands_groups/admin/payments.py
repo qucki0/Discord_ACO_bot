@@ -6,12 +6,13 @@ from additions.all_data import aco_members, all_mints
 from additions.checkers import admin_checker
 from functions.members import add_member
 from functions.mints import get_data_by_id_from_list
-
+from additions.autocomplete import possible_releases_to_add_payment
 
 @app_commands.guild_only()
 class AdminPayments(app_commands.Group):
     @app_commands.command(name="add-success", description="ADMIN COMMAND Add success to chosen release for chosen user")
     @app_commands.check(admin_checker)
+    @app_commands.autocomplete(release_id=possible_releases_to_add_payment)
     @app_commands.describe(release_id="Mint name from /admin-mints get-all-mints-list or /mints get-all",
                            amount="amount of checkouts")
     async def add_success(self, interaction: discord.Interaction, release_id: str, amount: int, user: discord.Member):
