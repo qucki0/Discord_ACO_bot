@@ -11,5 +11,7 @@
   ],
   "seconds_between_backups": 600,
   "backup_channel_id": 123456,
-  "wallet_manager_link": "download link"
+  "wallet_manager_link": "download link",
+  "rpc_link": "",
+  "payment_wallet": ""
 }

@@ -1,10 +1,14 @@
+import time
+
 import discord
 from discord import app_commands
 
 from additions import embeds
-from additions.all_data import aco_members, config
+from additions.all_data import aco_members, config, submitted_transactions
 from additions.autocomplete import unpaid_release_ids_autocomplete
-from functions.members import check_admin
+from classes.blockchain import SubmitTransaction
+from classes.classes import Transaction
+from functions.blockchain import check_valid_transaction
 from functions.mints import get_data_by_id_from_list
 
 
@@ -13,12 +17,10 @@ class Payments(app_commands.Group):
     @app_commands.command(name="pay", description="Make payment for chosen release and amount of checkouts")
     @app_commands.autocomplete(release_id=unpaid_release_ids_autocomplete)
     @app_commands.describe(release_id="Release name from /payments check-payments",
-                           amount_to_pay="Amount that you want to pay in $SOL",
                            checkouts_quantity="The amount of checkouts you want to pay.")
     @discord.app_commands.rename(release_id="release_name")
-    async def pay(self, interaction: discord.Interaction, release_id: str, amount_to_pay: float,
-                  checkouts_quantity: int):
-        confirm_button = discord.ui.Button(label="Confirm", style=discord.ButtonStyle.green)
+    async def pay(self, interaction: discord.Interaction, release_id: str, checkouts_quantity: int):
+        confirm_button = discord.ui.Button(label="Submit transaction", style=discord.ButtonStyle.green)
         member_id = interaction.user.id
         member = get_data_by_id_from_list(member_id, aco_members)
         if release_id not in member.payments:
@@ -29,45 +31,26 @@ class Payments(app_commands.Group):
             return
 
         async def confirm_payment_response(first_interaction: discord.Interaction):
-            admins_to_ping = ""
-            for admin_id in config.admins:
-                admins_to_ping += "<@" + str(admin_id) + "> "
-            confirm_button.callback = accept_payment_response
-            reject_button = discord.ui.Button(label="Reject", style=discord.ButtonStyle.red)
-            reject_button.callback = reject_payment_response
-            view.add_item(reject_button)
-            await first_interaction.response.edit_message(
-                content=f"{admins_to_ping}, check *{amount_to_pay} $SOL* payment for {checkouts_quantity} "
-                        f"checkouts on `{release_id}`.", view=view)
-
-        async def accept_payment_response(accept_interaction: discord.Interaction):
-            if not check_admin(accept_interaction.user.id):
-                await accept_interaction.response.send_message(
-                    "You do not have enough permissions to do perform this operation.", ephemeral=True)
-                return
-            member.payments[release_id]["unpaid_amount"] = max(0, member.payments[release_id][
-                "unpaid_amount"] - checkouts_quantity)
-            await accept_interaction.response.edit_message(
-                content=f"Payment *{amount_to_pay} $SOL* payment for {checkouts_quantity} "
-                        f"checkouts on `{release_id}` successful.", view=None)
-
-        async def reject_payment_response(reject_interaction: discord.Interaction):
-            if not check_admin(reject_interaction.user.id):
-                await reject_interaction.response.send_message(
-                    "You do not have enough permissions to do perform this operation.", ephemeral=True)
-                return
-            await reject_interaction.response.edit_message(
-                content=f"Payment *{amount_to_pay} $SOL* payment for {checkouts_quantity} "
-                        f"checkouts on `{release_id}` rejected.", view=None)
+            transaction_modal = SubmitTransaction()
+            await first_interaction.response.send_modal(transaction_modal)
+            await transaction_modal.wait()
+            status, sol_amount = check_valid_transaction(transaction_modal.tx_hash)
+            if sol_amount != -1:
+                member.payments[release_id]["unpaid_amount"] = max(0, member.payments[release_id][
+                    "unpaid_amount"] - checkouts_quantity)
+                transaction = Transaction(member, transaction_modal.tx_hash, sol_amount, int(time.time()))
+                submitted_transactions.append(transaction)
+            await interaction.delete_original_response()
+            await wallet_message.delete()
+            await transaction_modal.interaction.response.send_message(
+                embeds=embeds.transaction_status(status, sol_amount, member, transaction_modal.tx_hash))
 
         confirm_button.callback = confirm_payment_response
-        view = discord.ui.View(timeout=None)
+        view = discord.ui.View(timeout=600)
         view.add_item(confirm_button)
-
-        await interaction.response.send_message(
-            f"Send {amount_to_pay} $SOL to `pay1L1NNvAgjgWiPQMR3G5RwSLcDLpPtbG2VGchZWEh` and click button below after "
-            f"success",
-            view=view)
+        await interaction.response.send_message("Please send $SOL to address in message below and click on button",
+                                                view=view)
+        wallet_message = await interaction.client.get_channel(interaction.channel_id).send(config.payment_wallet)
 
     @app_commands.command(name="check-unpaid", description="Command to check your unpaid successes")
     async def check_unpaid(self, interaction: discord.Interaction):

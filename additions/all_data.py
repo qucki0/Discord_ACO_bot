@@ -2,7 +2,9 @@ import json
 import os
 import time
 
-from classes.classes import Drop, ACOMember, Config, BackupData
+from solana.rpc.api import Client
+
+from classes.classes import Drop, ACOMember, Config, BackupData, Transaction
 from functions.encryption import decrypt_string
 
 
@@ -25,8 +27,11 @@ def get_list_from_json(file_name, inner_class):
 actual_mints = get_list_from_json(os.path.join("data", "actual_mints.json"), Drop)
 aco_members = get_list_from_json(os.path.join("data", "aco_members.json"), ACOMember)
 all_mints = get_list_from_json(os.path.join("data", "all_mints.json"), Drop)
+submitted_transactions = get_list_from_json(os.path.join("data", "submitted_transactions.json"), Transaction)
 config = Config.parse_file("config.json")
 backup_data = BackupData(int(time.time()),
                          [(actual_mints, "actual_mints.json"),
                           (aco_members, "aco_members.json"),
-                          (all_mints, "all_mints.json")])
+                          (all_mints, "all_mints.json"),
+                          (submitted_transactions, "submitted_transactions.json")])
+solana_client = Client(config.rpc_link)

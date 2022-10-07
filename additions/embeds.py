@@ -4,7 +4,7 @@ from additions import all_data
 
 
 def mint_data(mint_id, link, timestamp, wallets_limit):
-    embed = discord.Embed(title=f":bell:{mint_id}", colour=discord.Colour.dark_grey())
+    embed = discord.Embed(title=f":bell:{mint_id}", colour=discord.Colour.red())
     if link is not None:
         embed.add_field(name="Link:", value=link)
     if timestamp is not None:
@@ -57,7 +57,7 @@ def help_embeds():
 
 
 def success(member_name, release_name, amount_of_checkouts):
-    success_embed = discord.Embed(title=f"{member_name} success!", colour=discord.Colour.from_str("#58b9ff"))
+    success_embed = discord.Embed(title=f"{member_name} success!", colour=discord.Colour.red())
     success_embed.add_field(name="__**Release:**__", value=release_name, inline=False)
     success_embed.add_field(name="__**Checkouts:**__", value=str(amount_of_checkouts), inline=False)
     set_footer(success_embed)
@@ -83,6 +83,16 @@ def wallet_manager_login_data(nickname, key, timestamp):
                          inline=False)
     set_footer(login_data)
     return login_data
+
+
+def transaction_status(status, sol_amount, member, transaction_hash):
+    url = "https://solscan.io/tx/" + transaction_hash
+    transaction_status_embed = discord.Embed(title="Transaction details", colour=discord.Colour.red(), url=url)
+    transaction_status_embed.add_field(name="Status:", value=status, inline=False)
+    if sol_amount != -1:
+        transaction_status_embed.add_field(name="Amount:", value=sol_amount, inline=False)
+        return transaction_status_embed, unpaid_successes(member)
+    return [transaction_status_embed]
 
 
 def set_footer(embed):

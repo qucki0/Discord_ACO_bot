@@ -20,7 +20,7 @@ class Wallets(app_commands.Group):
         if member is None:
             add_member(interaction.user)
 
-        wallets = [wallet.strip() for wallet in wallets.split(",")]
+        wallets = [wallet.strip() for wallet in wallets.replace("\n", " ").split(",")]
         if not len(wallets):
             await interaction.response.send_message("Please input wallets keys")
             return
@@ -39,7 +39,7 @@ class Wallets(app_commands.Group):
         not_private_keys = []
         already_exist_keys = []
         for wallet in wallets:
-            if len(wallet) >= 85:
+            if 88 >= len(wallet) >= 87:
                 if wallet not in mint.wallets[member_id]:
                     mint.wallets[member_id].add(wallet)
                 else:
