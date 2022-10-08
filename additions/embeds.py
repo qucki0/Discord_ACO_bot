@@ -1,6 +1,7 @@
 import discord
 
 from additions import all_data
+from classes.blockchain import Transaction
 
 
 def mint_data(mint_id, link, timestamp, wallets_limit):
@@ -93,6 +94,21 @@ def transaction_status(status, sol_amount, member, transaction_hash):
         transaction_status_embed.add_field(name="Amount:", value=sol_amount, inline=False)
         return transaction_status_embed, unpaid_successes(member)
     return [transaction_status_embed]
+
+
+def transaction_info(transaction: Transaction):
+    url = "https://solscan.io/tx/" + transaction.hash
+    transaction_data_embed = discord.Embed(title="Transaction info", colour=discord.Colour.red(), url=url)
+    transaction_data_embed.add_field(name="Submitted by:", value=f"<@{transaction.member_id}>")
+    transaction_data_embed.add_field(name="Submission date:", value=f"<t:{transaction.timestamp}>")
+    transaction_data_embed.add_field(name="Amount:", value=f"{transaction.amount} $SOL", inline=False)
+    return transaction_data_embed
+
+
+def mint_info(mint):
+    mint_info_embed = discord.Embed(title=f"{mint.id} info", colour=discord.Colour.red())
+    mint_info_embed.add_field(name="Checkouts:", value=f"{mint.checkouts}")
+    return mint_info_embed
 
 
 def set_footer(embed):

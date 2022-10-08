@@ -23,3 +23,10 @@ def remove_emoji(string):
                                u"\u3030"
                                "]+", flags=re.UNICODE)
     return emoji_pattern.sub(r'', string)
+
+
+def get_data_by_id_from_list(data_to_find, array_to_check):
+    data_to_find = str(data_to_find).strip().lower()
+    for element in array_to_check:
+        if str(element.id).lower() == data_to_find:
+            return element

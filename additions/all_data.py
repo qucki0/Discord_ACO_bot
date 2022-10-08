@@ -4,7 +4,8 @@ import time
 
 from solana.rpc.api import Client
 
-from classes.classes import Drop, ACOMember, Config, BackupData, Transaction
+from classes.classes import Drop, ACOMember, Config, BackupData
+from classes.blockchain import Transaction
 from functions.encryption import decrypt_string
 
 

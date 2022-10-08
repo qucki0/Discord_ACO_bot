@@ -1,10 +1,10 @@
 import discord
 from discord import app_commands
 
-from additions.all_data import aco_members
 from additions.autocomplete import release_id_autocomplete
 from functions.members import add_member
-from functions.mints import get_mint_by_id, get_data_by_id_from_list
+from functions.members import get_member_by_id
+from functions.mints import get_mint_by_id
 
 
 @app_commands.guild_only()
@@ -16,7 +16,7 @@ class Wallets(app_commands.Group):
     @discord.app_commands.rename(release_id="release_name", wallets="private_keys")
     async def send_wallets(self, interaction: discord.Interaction, release_id: str, wallets: str):
         member_id = interaction.user.id
-        member = get_data_by_id_from_list(member_id, aco_members)
+        member = get_member_by_id(member_id)
         if member is None:
             add_member(interaction.user)
 

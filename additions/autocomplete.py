@@ -20,7 +20,7 @@ async def unpaid_release_ids_autocomplete(interaction: discord.Interaction, curr
     return [app_commands.Choice(name=mint, value=mint) for mint in mints if current.lower() in mint.lower()]
 
 
-async def possible_releases_to_add_payment(interaction: discord.Interaction, current: str):
+async def all_releases_autocomplete(interaction: discord.Interaction, current: str):
     mints = [mint.id for mint in reversed(all_mints) if current.strip().lower() in mint.id.lower()]
     if len(mints) > 25:
         mints = mints[:24] + ["..."]
