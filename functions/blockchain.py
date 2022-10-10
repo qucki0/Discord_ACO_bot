@@ -34,7 +34,7 @@ def get_transaction_hash_from_string(transaction):
 
 
 def is_hash_length_correct(transaction_hash):
-    return len(transaction_hash) == 88
+    return 88 >= len(transaction_hash) >= 87
 
 
 def is_hash_already_submitted(transaction_hash):

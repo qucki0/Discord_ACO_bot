@@ -1,11 +1,10 @@
 import json
 import os
-import time
 
 from solana.rpc.api import Client
 
-from classes.classes import Drop, ACOMember, Config, BackupData
 from classes.blockchain import Transaction
+from classes.classes import Drop, ACOMember, Config, BackupData
 from functions.encryption import decrypt_string
 
 
@@ -30,8 +29,7 @@ aco_members = get_list_from_json(os.path.join("data", "aco_members.json"), ACOMe
 all_mints = get_list_from_json(os.path.join("data", "all_mints.json"), Drop)
 submitted_transactions = get_list_from_json(os.path.join("data", "submitted_transactions.json"), Transaction)
 config = Config.parse_file("config.json")
-backup_data = BackupData(int(time.time()),
-                         [(actual_mints, "actual_mints.json"),
+backup_data = BackupData([(actual_mints, "actual_mints.json"),
                           (aco_members, "aco_members.json"),
                           (all_mints, "all_mints.json"),
                           (submitted_transactions, "submitted_transactions.json")])

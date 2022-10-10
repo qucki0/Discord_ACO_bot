@@ -85,5 +85,4 @@ class Config(BaseModel):
 
 @dataclass
 class BackupData:
-    last_backup_timestamp: int
     files_to_backup: list[tuple[list, str]]
