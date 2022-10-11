@@ -29,32 +29,36 @@ def unpaid_successes(member):
 
 def help_embeds():
     mints_embed = discord.Embed(title="/mints", colour=discord.Colour.red())
-    mints_embed.add_field(name="**/mints get-all** - список минтов на сегодня, будет обновляться каждый день.",
-                          value="Параметры не требуются.")
+    mints_embed.add_field(name="**/mints get-all** - список минтов на сегодня, обновляется каждый день.",
+                          value="Параметры не требуются")
     mints_embed.add_field(name="**/mints request** - если мы упустили какой-то проект, то используйте эту команду.",
-                          value="*release_id:* **«Название релиза»**\n"
+                          value="*release_name:* **«Название релиза»**\n"
                                 "*link:* **«Ссылка на проект»** *(необязательно)*"
-                                "\n*mint_time:* **«Время минта»** *(необязательно)*")
+                                "\n*mint_time:* **«Таймстамп минта»** *(необязательно)*")
     wallets_embed = discord.Embed(title="/wallets", colour=discord.Colour.red())
     wallets_embed.add_field(name="**/wallets send** - отправить кошельки на минт.",
-                            value="*release_id:* **«Название релиза»** *(название из /mints get-all)*\n"
+                            value="*release_name:* **«Название релиза»** *(название из /mints get-all)*\n"
                                   "*wallets:* **«ключ1, ключ2, ключ3»**"
                                   " *(приватные ключи кошельков через запятую)* ")
-    wallets_embed.add_field(name="**/wallets check** - просмотр добавленных кошельков.",
-                            value="*release_id:* **«Название релиза»**")
+    wallets_embed.add_field(name="**/wallets check** - посмотреть список добавленных кошельков.",
+                            value="*release_name:* **«Название релиза»**")
     wallets_embed.add_field(name="/wallets delete - удаление добавленных кошельков.",
-                            value="*release_id:* **«Название релиза»**\n"
+                            value="*release_name:* **«Название релиза»**\n"
                                   "*wallets:* **«ключ1, ключ2, ключ3»** *(приватные ключи кошельков через запятую)*"
                                   " или **«all»** *(выбор всех кошельков)*")
     payments_embed = discord.Embed(title="/payments", colour=discord.Colour.red())
-    payments_embed.add_field(name="/payment check-payments - просмотр неоплаченных чекаутов.",
-                             value="Параметры не требуются.")
-    payments_embed.add_field(name="**/payment pay** - оплата за ваши чекауты.",
+    payments_embed.add_field(name="/payment check-payments - посмотреть список неоплаченных чекаутов.",
+                             value="Параметры не требуются")
+    payments_embed.add_field(name="**/payment pay** - оплатить успешные чекауты.",
                              value="*release_name:* **«Название релиза»**\n"
-                                   "*amount_to_pay:* **«Количество SOL»**\n"
                                    "*checkouts_quantity:* **«Количество чекаутов для оплаты»**")
-    set_footer(payments_embed)
-    return mints_embed, wallets_embed, payments_embed
+    wallet_manager_embed = discord.Embed(title="/wallet-manager", colour=discord.Colour.red())
+    wallet_manager_embed.add_field(name="/wallet-manager download - получить ссылку на скачивание валлет менеджера.",
+                                   value="Параметры не требуются")
+    wallet_manager_embed.add_field(name="/wallet-manager get-key - получить ключ для валлет менеджера.",
+                                   value="Параметры не требуются")
+    set_footer(wallet_manager_embed)
+    return mints_embed, wallets_embed, payments_embed, wallet_manager_embed
 
 
 def success(member_name, release_name, amount_of_checkouts):
