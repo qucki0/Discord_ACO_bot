@@ -30,3 +30,11 @@ def get_data_by_id_from_list(data_to_find, array_to_check):
     for element in array_to_check:
         if str(element.id).lower() == data_to_find:
             return element
+
+
+def get_wallets_from_string(wallets_str):
+    wallets_str = wallets_str.replace("\n", " ")
+    wallets = []
+    for group in wallets_str.split():
+        wallets += [wallet.strip() for wallet in group.split(",") if len(wallet.strip()) != 0]
+    return wallets
