@@ -2,14 +2,14 @@ import discord
 from discord import app_commands
 
 from additions.autocomplete import release_id_autocomplete
-from functions.members import add_member
-from functions.members import get_member_by_id
+from functions.members import add_member, get_member_by_id
 from functions.mints import get_mint_by_id
+from functions.other import get_wallets_from_string
 
 
 @app_commands.guild_only()
 class Wallets(app_commands.Group):
-    @app_commands.command(name="send", description="Send wallets separated by commas for chosen release")
+    @app_commands.command(name="send", description="Send wallets separated by spaces for chosen release")
     @app_commands.autocomplete(release_id=release_id_autocomplete)
     @app_commands.describe(release_id="Release name from /mints get-all",
                            wallets_str="Your wallets private keys separated by comma")
@@ -19,11 +19,8 @@ class Wallets(app_commands.Group):
         member = get_member_by_id(member_id)
         if member is None:
             add_member(interaction.user)
+        wallets = get_wallets_from_string(wallets_str)
 
-        wallets_str = wallets_str.replace("\n", " ")
-        wallets = []
-        for group in wallets_str.split():
-            wallets += [wallet.strip() for wallet in group.split(",") if len(wallet.strip()) != 0]
         if not len(wallets):
             await interaction.response.send_message("Please input wallets keys")
             return
@@ -99,7 +96,7 @@ class Wallets(app_commands.Group):
         if wallets.lower().strip() == "all":
             mint.wallets[member_id].clear()
         else:
-            wallets_to_delete = [wallet.strip() for wallet in wallets.split(",")]
+            wallets_to_delete = get_wallets_from_string(wallets)
             for wallet in wallets_to_delete:
                 mint.wallets[member_id].discard(wallet)
         deleted_wallets = wallets_len_before_deleting - len(mint.wallets[member_id])
