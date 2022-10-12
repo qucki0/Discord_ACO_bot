@@ -12,15 +12,18 @@ class Wallets(app_commands.Group):
     @app_commands.command(name="send", description="Send wallets separated by commas for chosen release")
     @app_commands.autocomplete(release_id=release_id_autocomplete)
     @app_commands.describe(release_id="Release name from /mints get-all",
-                           wallets="Your wallets private keys separated by comma")
-    @discord.app_commands.rename(release_id="release_name", wallets="private_keys")
-    async def send_wallets(self, interaction: discord.Interaction, release_id: str, wallets: str):
+                           wallets_str="Your wallets private keys separated by comma")
+    @discord.app_commands.rename(release_id="release_name", wallets_str="private_keys")
+    async def send_wallets(self, interaction: discord.Interaction, release_id: str, wallets_str: str):
         member_id = interaction.user.id
         member = get_member_by_id(member_id)
         if member is None:
             add_member(interaction.user)
 
-        wallets = [wallet.strip() for wallet in wallets.replace("\n", " ").split(",")]
+        wallets_str = wallets_str.replace("\n", " ")
+        wallets = []
+        for group in wallets_str.split():
+            wallets += [wallet.strip() for wallet in group.split(",") if len(wallet.strip()) != 0]
         if not len(wallets):
             await interaction.response.send_message("Please input wallets keys")
             return
