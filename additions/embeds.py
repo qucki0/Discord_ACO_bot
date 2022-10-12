@@ -44,7 +44,7 @@ def help_embeds():
                             value="*release_name:* **«Название релиза»**")
     wallets_embed.add_field(name="/wallets delete - удаление добавленных кошельков.",
                             value="*release_name:* **«Название релиза»**\n"
-                                  "*wallets:* **«ключ1, ключ2, ключ3»** *(приватные ключи кошельков через запятую)*"
+                                  "*wallets:* **«ключ1 ключ2 ключ3»** *(приватные ключи кошельков через пробел)*"
                                   " или **«all»** *(выбор всех кошельков)*")
     payments_embed = discord.Embed(title="/payments", colour=discord.Colour.red())
     payments_embed.add_field(name="/payment check-payments - посмотреть список неоплаченных чекаутов.",
@@ -110,7 +110,7 @@ def transaction_info(transaction: Transaction):
 
 
 def mint_info(mint):
-    mint_info_embed = discord.Embed(title=f"{mint.id} info", colour=discord.Colour.red())
+    mint_info_embed = discord.Embed(title=f"{mint.id}", colour=discord.Colour.red())
     mint_info_embed.add_field(name="Checkouts:", value=f"{mint.checkouts}")
     return mint_info_embed
 
