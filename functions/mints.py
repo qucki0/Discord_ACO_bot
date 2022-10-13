@@ -3,6 +3,8 @@ import discord
 from additions.all_data import actual_mints, all_mints, config, aco_members
 from classes.classes import Drop
 from functions.other import get_data_by_id_from_list
+from functions.blockchain import is_hash_length_correct
+from functions.other import get_wallets_from_string
 
 
 async def add_mint_to_mints_list(interaction: discord.Interaction, release_id, link, timestamp, wallets_limit=10):
@@ -29,8 +31,44 @@ def get_unpaid_mints():
     for member in aco_members:
         for release_id in member.payments:
             if unpaid_amount := member.payments[release_id]["unpaid_amount"]:
-                if release_id in data:
-                    data[release_id].append([member.id, unpaid_amount])
-                else:
-                    data[release_id] = [[member.id, unpaid_amount]]
+                if release_id not in data:
+                    data[release_id] = []
+                data[release_id].append([member.id, unpaid_amount])
     return data
+
+
+def add_wallets_to_mint(wallets_to_add, mint, member_id):
+    if member_id not in mint.wallets:
+        mint.wallets[member_id] = set()
+
+    member_wallets = mint.get_wallets_by_id(member_id)
+    wallets_before_adding = len(member_wallets)
+    not_private_keys = []
+    already_exist_keys = []
+
+    for wallet in wallets_to_add:
+        if not is_hash_length_correct(wallet):
+            not_private_keys.append(wallet)
+            continue
+        if wallet in member_wallets:
+            already_exist_keys.append(wallet)
+            continue
+        member_wallets.add(wallet)
+
+    added_wallets = len(member_wallets) - wallets_before_adding
+    mint.wallets_limit -= added_wallets
+    return not_private_keys, already_exist_keys, added_wallets
+
+
+def delete_wallets_from_mint(wallets_to_delete, mint, member_id):
+    member_wallets = mint.get_wallets_by_id(member_id)
+    wallets_len_before_deleting = len(member_wallets)
+    if wallets_to_delete.lower().strip() == "all":
+        member_wallets.clear()
+    else:
+        wallets_to_delete = get_wallets_from_string(wallets_to_delete)
+        for wallet in wallets_to_delete:
+            member_wallets.discard(wallet)
+    deleted_wallets = wallets_len_before_deleting - len(member_wallets)
+    mint.wallets_limit += deleted_wallets
+    return deleted_wallets

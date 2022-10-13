@@ -1,4 +1,6 @@
 from additions.all_data import solana_client, config, submitted_transactions
+import time
+from classes.blockchain import Transaction
 from solders.signature import Signature
 import json
 
@@ -15,7 +17,7 @@ def check_valid_transaction(transaction_hash):
     transaction_data = json.loads(transaction_data_response.to_json())
 
     if not is_transaction_completed(transaction_data):
-        return "Transaction isn't completed. Wait a bit and try again.", -1
+        return "Transaction isn't confirmed. Wait a bit and try again.", -1
     if is_transaction_completed_with_error(transaction_data):
         print(transaction_data)  # to check what was wrong
         return "Something went wrong. Wait a bit and try again.", -1
@@ -28,6 +30,17 @@ def check_valid_transaction(transaction_hash):
     transaction_fee = transaction_data["result"]["meta"]["fee"]
     sol_amount = (balance_before_sending - balance_after_sending - transaction_fee) / 1000000000
     return "Payment successful.", sol_amount
+
+
+def submit_transaction(tx_hash, member, release_id, checkouts_quantity):
+    tx_hash = get_transaction_hash_from_string(tx_hash)
+    status, sol_amount = check_valid_transaction(tx_hash)
+    if sol_amount != -1:
+        member.payments[release_id]["unpaid_amount"] = max(0, member.payments[release_id]["unpaid_amount"]
+                                                           - checkouts_quantity)
+        transaction = Transaction(member, tx_hash, sol_amount, int(time.time()))
+        submitted_transactions.append(transaction)
+    return status, sol_amount
 
 
 def get_transaction_hash_from_string(transaction):

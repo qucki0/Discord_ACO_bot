@@ -4,8 +4,9 @@ from discord import app_commands
 from additions import embeds
 from additions.autocomplete import all_releases_autocomplete
 from additions.checkers import admin_checker
-from functions.members import add_member, get_member_by_id
+from functions.members import get_member_for_payments, get_member_by_id
 from functions.mints import get_mint_by_id
+from functions.paymnets import add_checkouts
 
 
 @app_commands.guild_only()
@@ -20,17 +21,10 @@ class AdminPayments(app_commands.Group):
         if mint is None:
             await interaction.response.send_message(f"There are no releases named as {release_id}")
             return
-        member = get_member_by_id(user.id)
-        if member is None:
-            add_member(user)
-        member = get_member_by_id(user.id)
-        if mint.id not in member.payments:
-            member.payments[mint.id] = {"amount_of_checkouts": amount,
-                                        "unpaid_amount": amount}
-        else:
-            member.payments[mint.id]["amount_of_checkouts"] += amount
-            member.payments[mint.id]["unpaid_amount"] += amount
-        mint.checkouts += amount
+
+        member = get_member_for_payments(user)
+        add_checkouts(member, mint, amount)
+
         await interaction.response.send_message(f"Added {amount} checkouts", ephemeral=True)
         await interaction.client.get_channel(interaction.channel_id).send(
             embed=embeds.success(user.name, release_id, member.payments[mint.id]["amount_of_checkouts"]))

@@ -19,8 +19,9 @@ class WalletManager(app_commands.Group):
     async def get_key(self, interaction: discord.Interaction):
         exp_timestamp = 1664312400
         current_timestamp = time.time()
+        week = 7 * 24 * 60 * 60
         while exp_timestamp < current_timestamp:
-            exp_timestamp += 7 * 24 * 60 * 60
+            exp_timestamp += week
         name = get_member_name_by_id(interaction.user.id).lower()
         key = hashlib.sha256(f"{name}{exp_timestamp}".encode("utf8")).hexdigest()
         await interaction.response.send_message(embed=embeds.wallet_manager_login_data(name, key, exp_timestamp))

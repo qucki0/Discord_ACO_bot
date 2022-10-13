@@ -20,3 +20,11 @@ def check_admin(member_id):
 
 def get_member_by_id(member_id):
     return get_data_by_id_from_list(member_id, aco_members)
+
+
+def get_member_for_payments(user: discord.Member):
+    member = get_member_by_id(user.id)
+    if member is None:
+        add_member(user)
+        member = get_member_by_id(user.id)
+    return member

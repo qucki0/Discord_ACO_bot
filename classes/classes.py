@@ -32,15 +32,6 @@ class Drop:
                 "checkouts": self.checkouts}
         return data
 
-    def get_drop_data(self):
-        data = ""
-        data += f"**{self.id}** "
-        if self.timestamp is not None:
-            data += f"<t:{self.timestamp}> "
-        if self.link is not None:
-            data += f"{self.link.strip()}"
-        return data
-
     def get_wallets_by_id(self, member_id):
         if member_id in self.wallets:
             return self.wallets[member_id]

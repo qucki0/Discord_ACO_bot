@@ -10,12 +10,13 @@ from functions.mints import add_mint_to_mints_list, check_mint_exist
 class Mints(app_commands.Group):
     @app_commands.command(name="get-all", description="Get actual mints")
     async def get_mints(self, interaction: discord.Interaction):
-        data_to_send = [mint.get_as_embed() for mint in actual_mints]
+        embeds_to_send = [mint.get_as_embed() for mint in actual_mints]
         message_to_send = "**Let us know if we lost something. Just use `/mints request` for it!**"
-        await interaction.response.send_message(message_to_send, embeds=data_to_send[:min(10, len(data_to_send))])
-        for i in range(1, len(data_to_send) // 10 + 1):
+        await interaction.response.send_message(message_to_send, embeds=embeds_to_send[:min(10, len(embeds_to_send))])
+
+        for i in range(1, len(embeds_to_send) // 10 + 1):
             await interaction.client.get_channel(interaction.channel_id).send(
-                embeds=data_to_send[10 * i:min(10 * (i + 1), len(data_to_send))])
+                embeds=embeds_to_send[10 * i:min(10 * (i + 1), len(embeds_to_send))])
 
     @app_commands.command(name="request", description="Create request to add mint")
     @app_commands.describe(release_id="Name of release you want to request",

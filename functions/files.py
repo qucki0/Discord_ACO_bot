@@ -32,7 +32,8 @@ async def create_backup_files(channel_to_send):
         files_to_send = []
         for file in backup_data.files_to_backup:
             save_json(*file)
-            files_to_send.append(discord.File(os.path.join("data", file[1])))
+            path_to_file = os.path.join("data", file[1])
+            files_to_send.append(discord.File(path_to_file))
 
         await channel_to_send.send(files=files_to_send)
     except TypeError as ex:
@@ -41,8 +42,30 @@ async def create_backup_files(channel_to_send):
             print(get_list_for_backup(file[0]))
 
 
-def create_csv_from_dict(file_path, data_dict):
-    with open(file_path, "w", newline='') as csv_file:
-        csv_writer = csv.DictWriter(csv_file, fieldnames=data_dict[0].keys())
-        csv_writer.writeheader()
-        csv_writer.writerows(data_dict)
+def delete_mint_files(mint_name):
+    mint_name = mint_name.lower()
+    if not os.path.exists("wallets_to_send"):
+        return
+    for file_name in os.listdir("wallets_to_send"):
+        if file_name[:len(mint_name)] == mint_name:
+            os.remove(os.path.join("wallets_to_send", file_name))
+
+
+def create_wallets_files(wallets, files):
+    urban_file = open(files["urban"], "w")
+
+    pepper_file = open(files["pepper"], "w")
+    pepper_writer = csv.writer(pepper_file)
+    pepper_writer.writerow(["ALIAS", "PRIVATE_KEY"])
+
+    ms_file = open(files["minter_suite"], "w")
+    ms_writer = csv.writer(ms_file)
+    ms_writer.writerow(["Name", "Private Key", "Public Key"])
+    for wallet_name, wallet_key in wallets:
+        urban_file.write(f"{wallet_name}:{wallet_key}\n")
+        pepper_writer.writerow([wallet_name, wallet_key])
+        ms_writer.writerow([wallet_name, wallet_key, ""])
+
+    urban_file.close()
+    pepper_file.close()
+    ms_file.close()

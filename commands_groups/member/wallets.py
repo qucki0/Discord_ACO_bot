@@ -3,7 +3,7 @@ from discord import app_commands
 
 from additions.autocomplete import release_id_autocomplete
 from functions.members import add_member, get_member_by_id
-from functions.mints import get_mint_by_id
+from functions.mints import get_mint_by_id, add_wallets_to_mint, delete_wallets_from_mint
 from functions.other import get_wallets_from_string
 
 
@@ -12,7 +12,7 @@ class Wallets(app_commands.Group):
     @app_commands.command(name="send", description="Send wallets separated by spaces for chosen release")
     @app_commands.autocomplete(release_id=release_id_autocomplete)
     @app_commands.describe(release_id="Release name from /mints get-all",
-                           wallets_str="Your wallets private keys separated by comma")
+                           wallets_str="Your wallets private keys separated by spaces")
     @discord.app_commands.rename(release_id="release_name", wallets_str="private_keys")
     async def send_wallets(self, interaction: discord.Interaction, release_id: str, wallets_str: str):
         member_id = interaction.user.id
@@ -34,21 +34,9 @@ class Wallets(app_commands.Group):
             await interaction.response.send_message(f"There are only {mint.wallets_limit} spots left for {mint.id}")
             return
 
-        if member_id not in mint.wallets:
-            mint.wallets[member_id] = set()
-        wallets_before_adding = len(mint.wallets[member_id])
-        not_private_keys = []
-        already_exist_keys = []
-        for wallet in wallets:
-            if 88 >= len(wallet) >= 87:
-                if wallet not in mint.wallets[member_id]:
-                    mint.wallets[member_id].add(wallet)
-                else:
-                    already_exist_keys.append(wallet)
-            else:
-                not_private_keys.append(wallet)
-        mint.wallets_limit -= len(mint.wallets[member_id]) - wallets_before_adding
-        response_message = f"Successfully sent {len(mint.wallets[member_id]) - wallets_before_adding} wallets. \n"
+        not_private_keys, already_exist_keys, added_wallets = add_wallets_to_mint(wallets, mint, member_id)
+
+        response_message = f"Successfully sent {added_wallets} wallets. \n"
         if already_exist_keys:
             already_exist_string = '\n'.join(already_exist_keys)
             response_message += f"{len(already_exist_keys)} wallets already exist:\n```\n{already_exist_string}\n```\n"
@@ -66,19 +54,24 @@ class Wallets(app_commands.Group):
         if mint is None:
             await interaction.response.send_message(f"There are no releases named as {release_id}", ephemeral=True)
             return
+
         member_id = interaction.user.id
         member_name = interaction.user.name
+
         message_to_send = f"{member_name} wallets for `{mint.id}`:\n```\n"
-        if member_id not in mint.wallets:
+        member_wallets = mint.get_wallets_by_id(member_id)
+        if not member_wallets:
             await interaction.response.send_message(message_to_send + "Nothing\n```\n")
             return
-        for wallet in mint.get_wallets_by_id(member_id):
+
+        for wallet in member_wallets:
             message_to_send += f"{wallet}\n"
         message_to_send += "```"
+
         await interaction.response.send_message(message_to_send)
 
     @app_commands.command(name="delete",
-                          description='Delete wallets separated by commas for chosen release, "all" for all')
+                          description='Delete wallets separated by spaces for chosen release, "all" for all')
     @app_commands.autocomplete(release_id=release_id_autocomplete)
     @app_commands.describe(release_id="Release name from /mints get-all",
                            wallets='Private keys that you want to delete. Use "all" for select all wallets')
@@ -88,19 +81,13 @@ class Wallets(app_commands.Group):
         if mint is None:
             await interaction.response.send_message(f"There are no releases named as {release_id}")
             return
+
         member_id = interaction.user.id
-        if member_id not in mint.wallets:
+        member_wallets = mint.get_wallets_by_id(member_id)
+        if not member_wallets:
             await interaction.response.send_message(f"First you need to send wallets!")
             return
 
-        wallets_len_before_deleting = len(mint.wallets[member_id])
-        if wallets.lower().strip() == "all":
-            mint.wallets[member_id].clear()
-        else:
-            wallets_to_delete = get_wallets_from_string(wallets)
-            for wallet in wallets_to_delete:
-                mint.wallets[member_id].discard(wallet)
-        deleted_wallets = wallets_len_before_deleting - len(mint.wallets[member_id])
-        mint.wallets_limit += deleted_wallets
+        deleted_wallets = delete_wallets_from_mint(wallets, mint, member_id)
         await interaction.response.send_message(
             f"Successfully deleted {deleted_wallets} wallets")
