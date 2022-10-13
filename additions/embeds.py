@@ -91,7 +91,7 @@ def wallet_manager_login_data(nickname, key, timestamp):
 
 
 def transaction_status(status, sol_amount, member, transaction_hash):
-    url = "https://solscan.io/tx/" + transaction_hash
+    url = "https://solscan.io/tx/" + transaction_hash.replace(" ", "_").replace("\n", "__")
     transaction_status_embed = discord.Embed(title="Transaction details", colour=discord.Colour.red(), url=url)
     transaction_status_embed.add_field(name="Status:", value=status, inline=False)
     if sol_amount != -1:
