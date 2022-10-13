@@ -1,4 +1,6 @@
 from additions.all_data import solana_client, config, submitted_transactions
+from solders.signature import Signature
+import json
 
 
 def check_valid_transaction(transaction_hash):
@@ -7,7 +9,11 @@ def check_valid_transaction(transaction_hash):
         return "Wrong input.", -1
     if is_hash_already_submitted(transaction_hash):
         return "This transaction already exist.", -1
-    transaction_data = solana_client.get_transaction(transaction_hash)
+
+    transaction_signature = Signature.from_string(transaction_hash)
+    transaction_data_response = solana_client.get_transaction(transaction_signature)
+    transaction_data = json.loads(transaction_data_response.to_json())
+
     if not is_transaction_completed(transaction_data):
         return "Transaction isn't completed. Wait a bit and try again.", -1
     if is_transaction_completed_with_error(transaction_data):
@@ -33,8 +39,8 @@ def get_transaction_hash_from_string(transaction):
     return transaction.strip()
 
 
-def is_hash_length_correct(transaction_hash):
-    return 88 >= len(transaction_hash) >= 87
+def is_hash_length_correct(some_hash):
+    return 88 >= len(some_hash) >= 87
 
 
 def is_hash_already_submitted(transaction_hash):
