@@ -22,7 +22,7 @@ class AdminWallets(app_commands.Group):
         if mint is None:
             await interaction.response.send_message(f"There are no releases named as `{release_id}`")
             return
-        if not mint.wallets:
+        if all(not mint.wallets[member_id] for member_id in mint.wallets):
             await interaction.response.send_message(f"There are no wallets for `{release_id}`")
             return
         base_wallets_dir = "wallets_to_send"
