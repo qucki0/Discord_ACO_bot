@@ -32,6 +32,7 @@ class Wallets(app_commands.Group):
 
         if mint.wallets_limit < len(wallets):
             await interaction.response.send_message(f"There are only {mint.wallets_limit} spots left for {mint.id}")
+            return
 
         if member_id not in mint.wallets:
             mint.wallets[member_id] = set()
