@@ -3,12 +3,11 @@ from dataclasses import dataclass
 import discord
 from pydantic import BaseModel
 
-from additions import embeds
-
 
 class Drop:
-    def __init__(self, mint_id=None, link=None, timestamp=None, wallets_limit=None, json_file=None):
-        if json_file is None:
+    def __init__(self, mint_id: str = None, link: str = None, timestamp: int = None, wallets_limit: int = None,
+                 input_dict: dict = None) -> None:
+        if input_dict is None:
             self.id = mint_id.strip()
             self.wallets_limit = wallets_limit
             self.timestamp = timestamp
@@ -16,14 +15,14 @@ class Drop:
             self.wallets = {}
             self.checkouts = 0
         else:
-            self.id = json_file["id"]
-            self.wallets_limit = int(json_file["wallets_limit"])
-            self.timestamp = json_file["timestamp"]
-            self.link = json_file["link"]
-            self.wallets = {int(key): set(json_file["wallets"][key]) for key in json_file["wallets"]}
-            self.checkouts = int(json_file["checkouts"])
+            self.id = input_dict["id"]
+            self.wallets_limit = int(input_dict["wallets_limit"])
+            self.timestamp = input_dict["timestamp"]
+            self.link = input_dict["link"]
+            self.wallets = {int(key): set(input_dict["wallets"][key]) for key in input_dict["wallets"]}
+            self.checkouts = int(input_dict["checkouts"])
 
-    def get_as_dict(self):
+    def get_as_dict(self) -> dict:
         data = {"id": self.id,
                 "wallets_limit": self.wallets_limit,
                 "timestamp": self.timestamp,
@@ -32,28 +31,29 @@ class Drop:
                 "checkouts": self.checkouts}
         return data
 
-    def get_wallets_by_id(self, member_id):
+    def get_wallets_by_id(self, member_id: int) -> set[str]:
         if member_id in self.wallets:
             return self.wallets[member_id]
 
-    def get_as_embed(self):
-        return embeds.mint_data(self.id, self.link, self.timestamp, self.wallets_limit)
+    def get_as_embed(self) -> discord.Embed:
+        from additions import embeds
+        return embeds.mint_data(self)
 
 
 class ACOMember:
-    def __init__(self, member: discord.Member = None, json_file=None):
-        if json_file is None:
+    def __init__(self, member: discord.Member = None, input_dict: dict = None) -> None:
+        if input_dict is None:
             self.id = member.id
             self.name = member.name
             self.mints = {}
             self.payments = {}
         else:
-            self.id = int(json_file["id"])
-            self.name = json_file["name"]
-            self.mints = json_file["mints"]
-            self.payments = json_file["payments"]
+            self.id = int(input_dict["id"])
+            self.name = input_dict["name"]
+            self.mints = input_dict["mints"]
+            self.payments = input_dict["payments"]
 
-    def get_as_dict(self):
+    def get_as_dict(self) -> dict:
         data = {"id": self.id,
                 "name": self.name,
                 "mints": self.mints,

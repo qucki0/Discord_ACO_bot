@@ -6,8 +6,8 @@ from discord import app_commands
 from additions.all_data import actual_mints, all_mints, config
 from additions.autocomplete import release_id_autocomplete
 from additions.checkers import admin_checker
-from functions.mints import get_mint_by_id, add_mint_to_mints_list
 from functions.files import delete_mint_files
+from functions.mints import get_mint_by_id, add_mint_to_mints_list
 
 
 @app_commands.guild_only()
@@ -19,7 +19,7 @@ class AdminMints(app_commands.Group):
                            link="Mint link",
                            timestamp="Drop timestamp")
     async def add_mint(self, interaction: discord.Interaction, release_id: str, wallets_limit: int, link: str = None,
-                       timestamp: str = None):
+                       timestamp: int = None) -> None:
         await add_mint_to_mints_list(interaction, release_id, link, timestamp, wallets_limit)
 
     @app_commands.command(name="change-info", description="ADMIN COMMAND Change mint [id, link, time or wallets limit]")
@@ -30,7 +30,7 @@ class AdminMints(app_commands.Group):
                            new_value="Value that will be set. For wallet limit type + or"
                                      " - than amount you want to add/delete. Example: +10 or -5")
     async def change_mint_info(self, interaction: discord.Interaction, release_id: str,
-                               change_type: Literal["id", "link", "time", "wallets limit"], new_value: str):
+                               change_type: Literal["id", "link", "time", "wallets limit"], new_value: str) -> None:
         change_type = change_type.strip()
         new_value = new_value.strip()
         mint = get_mint_by_id(release_id)
@@ -55,7 +55,7 @@ class AdminMints(app_commands.Group):
 
     @app_commands.command(name="get-all-mints-list", description="ADMIN COMMAND Get all mints")
     @app_commands.check(admin_checker)
-    async def get_mints_list(self, interaction: discord.Interaction):
+    async def get_mints_list(self, interaction: discord.Interaction) -> None:
         data_to_send = '```\n'
         for mint in all_mints:
             data_to_send += f"{mint.id}\n"
@@ -66,7 +66,7 @@ class AdminMints(app_commands.Group):
     @app_commands.check(admin_checker)
     @app_commands.autocomplete(release_id=release_id_autocomplete)
     @app_commands.describe(release_id="Mint name only from /mints get-all")
-    async def delete_mint(self, interaction: discord.Interaction, release_id: str):
+    async def delete_mint(self, interaction: discord.Interaction, release_id: str) -> None:
         for mint in actual_mints:
             if release_id.lower().strip() == mint.id.lower():
                 delete_mint_files(mint.id)

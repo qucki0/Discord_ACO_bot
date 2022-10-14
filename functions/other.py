@@ -1,7 +1,10 @@
 import re
+from typing import TypeVar
+
+from classes.classes import Drop, ACOMember
 
 
-def remove_emoji(string):
+def remove_emoji(string: str) -> str:
     emoji_pattern = re.compile("["
                                u"\U0001F600-\U0001F64F"  # emoticons
                                u"\U0001F300-\U0001F5FF"  # symbols & pictographs
@@ -25,14 +28,17 @@ def remove_emoji(string):
     return emoji_pattern.sub(r'', string)
 
 
-def get_data_by_id_from_list(data_to_find, array_to_check):
-    data_to_find = str(data_to_find).strip().lower()
+T = TypeVar("T", Drop, ACOMember)
+
+
+def get_data_by_id_from_list(id_to_find: int | str, array_to_check: list[T]) -> T | None:
+    id_to_find = str(id_to_find).strip().lower()
     for element in array_to_check:
-        if str(element.id).lower() == data_to_find:
+        if str(element.id).lower() == id_to_find:
             return element
 
 
-def get_wallets_from_string(wallets_str):
+def get_wallets_from_string(wallets_str: str) -> list[str]:
     wallets_str = wallets_str.replace("\n", " ")
     wallets = []
     for group in wallets_str.split():

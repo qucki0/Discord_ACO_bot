@@ -1,10 +1,13 @@
-from additions import embeds
-from functions.blockchain import submit_transaction, get_transaction_hash_from_string
 import discord
+
+from additions import embeds
+from classes.classes import ACOMember
+from functions.blockchain import submit_transaction, get_transaction_hash_from_string
 
 
 class SubmitTransactionView(discord.ui.View):
-    def __init__(self, original_interaction, member, release_id, checkouts_quantity):
+    def __init__(self, original_interaction: discord.Interaction, member: ACOMember, release_id: str,
+                 checkouts_quantity: int) -> None:
         self.original_interaction = original_interaction
         self.member = member
         self.release_id = release_id
@@ -13,7 +16,8 @@ class SubmitTransactionView(discord.ui.View):
         super().__init__(timeout=600)
 
     @discord.ui.button(label="Submit transaction", style=discord.ButtonStyle.green)
-    async def submit_transaction_button(self, confirm_interaction, button):
+    async def submit_transaction_button(self, confirm_interaction: discord.Interaction,
+                                        button: discord.ui.Button) -> None:
         transaction_modal = SubmitTransactionModal()
         await confirm_interaction.response.send_modal(transaction_modal)
         await transaction_modal.wait()
@@ -27,7 +31,7 @@ class SubmitTransactionView(discord.ui.View):
         await transaction_modal.interaction.response.send_message(
             embeds=embeds.transaction_status(status, sol_amount, self.member, tx_hash))
 
-    async def on_timeout(self):
+    async def on_timeout(self) -> None:
         for button in self.children:
             button.disabled = True
         await self.original_interaction.edit_original_response(
@@ -42,7 +46,7 @@ class SubmitTransactionModal(discord.ui.Modal, title='Submit transaction'):
                                    placeholder="Transaction", max_length=150, required=True)
     interaction = None
 
-    async def on_submit(self, interaction: discord.Interaction):
+    async def on_submit(self, interaction: discord.Interaction) -> None:
         self.interaction = interaction
         self.tx_hash = str(self.tx_hash)
         self.stop()

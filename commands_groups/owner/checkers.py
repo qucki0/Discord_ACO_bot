@@ -12,7 +12,7 @@ class OwnerCheckers(app_commands.Group):
                           description="OWNER COMMAND get transaction data from in-bot database")
     @app_commands.check(owner_checker)
     @app_commands.describe(transaction_hash="Hash to check")
-    async def check_transaction(self, interaction: discord.Interaction, transaction_hash: str):
+    async def check_transaction(self, interaction: discord.Interaction, transaction_hash: str) -> None:
         transaction_hash = get_transaction_hash_from_string(transaction_hash)
         if not is_hash_length_correct(transaction_hash):
             await interaction.response.send_message("Wrong input.", ephemeral=True)

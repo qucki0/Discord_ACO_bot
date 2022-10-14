@@ -10,6 +10,6 @@ from functions.files import create_backup_files
 class Admin(app_commands.Group):
     @app_commands.command(name="backup", description="ADMIN COMMAND just doing backup")
     @app_commands.check(admin_checker)
-    async def backup(self, interaction: discord.Interaction):
+    async def backup(self, interaction: discord.Interaction) -> None:
         await create_backup_files(interaction.client.get_channel(config.backup_channel_id))
         await interaction.response.send_message(f"Backup successful, check <#{config.backup_channel_id}>")

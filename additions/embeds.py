@@ -2,21 +2,22 @@ import discord
 
 from additions import all_data
 from classes.blockchain import Transaction
+from classes.classes import ACOMember, Drop
 
 
-def mint_data(mint_id, link, timestamp, wallets_limit):
-    embed = discord.Embed(title=f":bell:{mint_id}", colour=discord.Colour.red())
-    if link is not None:
-        embed.add_field(name="Link:", value=link)
-    if timestamp is not None:
-        embed.add_field(name="Time:", value=f"<t:{timestamp}>")
-    if wallets_limit is not None:
-        embed.add_field(name="Spots left:", value=str(wallets_limit), inline=False)
+def mint_data(mint: Drop) -> discord.Embed:
+    embed = discord.Embed(title=f":bell:{mint.id}", colour=discord.Colour.red())
+    if mint.link is not None:
+        embed.add_field(name="Link:", value=mint.link)
+    if mint.timestamp is not None:
+        embed.add_field(name="Time:", value=f"<t:{mint.timestamp}>")
+    if mint.wallets_limit is not None:
+        embed.add_field(name="Spots left:", value=str(mint.wallets_limit), inline=False)
     embed.set_footer(text="Take your ACO in ticket")
     return embed
 
 
-def unpaid_successes(member):
+def unpaid_successes(member: ACOMember) -> discord.Embed:
     if member is None:
         return discord.Embed(title=f"New member unpaid successes", colour=discord.Colour.red(),
                              description="Nothing to see here;)")
@@ -27,7 +28,7 @@ def unpaid_successes(member):
     return embed
 
 
-def help_embeds():
+def help_embeds() -> tuple[discord.Embed, discord.Embed, discord.Embed, discord.Embed]:
     mints_embed = discord.Embed(title="/mints", colour=discord.Colour.red())
     mints_embed.add_field(name="**/mints get-all** - список минтов на сегодня, обновляется каждый день.",
                           value="Параметры не требуются")
@@ -61,7 +62,7 @@ def help_embeds():
     return mints_embed, wallets_embed, payments_embed, wallet_manager_embed
 
 
-def success(member_name, release_name, amount_of_checkouts):
+def success(member_name: str, release_name: str, amount_of_checkouts: int) -> discord.Embed:
     success_embed = discord.Embed(title=f"{member_name} success!", colour=discord.Colour.red())
     success_embed.add_field(name="__**Release:**__", value=release_name, inline=False)
     success_embed.add_field(name="__**Checkouts:**__", value=str(amount_of_checkouts), inline=False)
@@ -69,7 +70,7 @@ def success(member_name, release_name, amount_of_checkouts):
     return success_embed
 
 
-def wallet_manager_download():
+def wallet_manager_download() -> discord.Embed:
     link = all_data.config.wallet_manager_link
     download_embed = discord.Embed(title=f"Wallet Manager link:", colour=discord.Colour.red(),
                                    description=f"[Download]({link})")
@@ -77,7 +78,7 @@ def wallet_manager_download():
     return download_embed
 
 
-def wallet_manager_login_data(nickname, key, timestamp):
+def wallet_manager_login_data(nickname: str, key: str, timestamp: int) -> discord.Embed:
     login_data = discord.Embed(title="You credentials:", colour=discord.Colour.red())
     login_data.add_field(name="nickname:",
                          value=f"`{nickname}`")
@@ -90,17 +91,18 @@ def wallet_manager_login_data(nickname, key, timestamp):
     return login_data
 
 
-def transaction_status(status, sol_amount, member, transaction_hash):
+def transaction_status(status: str, sol_amount: float, member: ACOMember, transaction_hash: str) \
+        -> tuple[discord.Embed, ...]:
     url = "https://solscan.io/tx/" + transaction_hash.replace(" ", "_").replace("\n", "__")
     transaction_status_embed = discord.Embed(title="Transaction details", colour=discord.Colour.red(), url=url)
     transaction_status_embed.add_field(name="Status:", value=status, inline=False)
     if sol_amount != -1:
         transaction_status_embed.add_field(name="Amount:", value=sol_amount, inline=False)
         return transaction_status_embed, unpaid_successes(member)
-    return [transaction_status_embed]
+    return transaction_status_embed,
 
 
-def transaction_info(transaction: Transaction):
+def transaction_info(transaction: Transaction) -> discord.Embed:
     url = "https://solscan.io/tx/" + transaction.hash
     transaction_data_embed = discord.Embed(title="Transaction info", colour=discord.Colour.red(), url=url)
     transaction_data_embed.add_field(name="Submitted by:", value=f"<@{transaction.member_id}>")
@@ -109,13 +111,13 @@ def transaction_info(transaction: Transaction):
     return transaction_data_embed
 
 
-def mint_info(mint):
+def mint_info(mint: Drop) -> discord.Embed:
     mint_info_embed = discord.Embed(title=f"{mint.id}", colour=discord.Colour.red())
     mint_info_embed.add_field(name="Checkouts:", value=f"{mint.checkouts}")
     return mint_info_embed
 
 
-def set_footer(embed):
+def set_footer(embed: discord.Embed) -> None:
     icon_url = "https://cdn.discordapp.com/icons/838092056060624986/289b99bd777b929251cdbbd26bec96bd.webp"
     embed.set_footer(text="Aco Cola",
                      icon_url=icon_url)

@@ -1,11 +1,14 @@
-from additions.all_data import solana_client, config, submitted_transactions
-import time
-from classes.blockchain import Transaction
-from solders.signature import Signature
 import json
+import time
+
+from solders.signature import Signature
+
+from additions.all_data import solana_client, config, submitted_transactions
+from classes.blockchain import Transaction
+from classes.classes import ACOMember
 
 
-def check_valid_transaction(transaction_hash):
+def check_valid_transaction(transaction_hash: str) -> tuple[str, float]:
     transaction_hash = get_transaction_hash_from_string(transaction_hash)
     if not is_hash_length_correct(transaction_hash):
         return "Wrong input.", -1
@@ -32,7 +35,7 @@ def check_valid_transaction(transaction_hash):
     return "Payment successful.", sol_amount
 
 
-def submit_transaction(tx_hash, member, release_id, checkouts_quantity):
+def submit_transaction(tx_hash: str, member: ACOMember, release_id: str, checkouts_quantity: int) -> tuple[str, float]:
     tx_hash = get_transaction_hash_from_string(tx_hash)
     status, sol_amount = check_valid_transaction(tx_hash)
     if sol_amount != -1:
@@ -43,7 +46,7 @@ def submit_transaction(tx_hash, member, release_id, checkouts_quantity):
     return status, sol_amount
 
 
-def get_transaction_hash_from_string(transaction):
+def get_transaction_hash_from_string(transaction: str) -> str:
     if "/" in transaction:
         for possible_hash in transaction.split("/"):
             possible_hash = possible_hash.strip()
@@ -52,25 +55,25 @@ def get_transaction_hash_from_string(transaction):
     return transaction.strip()
 
 
-def is_hash_length_correct(some_hash):
+def is_hash_length_correct(some_hash: str) -> bool:
     return 88 >= len(some_hash) >= 87
 
 
-def is_hash_already_submitted(transaction_hash):
+def is_hash_already_submitted(transaction_hash: str) -> bool:
     return any(tx.hash == transaction_hash for tx in submitted_transactions)
 
 
-def is_transaction_completed(transaction_data):
+def is_transaction_completed(transaction_data: dict) -> bool:
     return transaction_data["result"] is not None
 
 
-def is_transaction_completed_with_error(transaction_data):
+def is_transaction_completed_with_error(transaction_data: dict) -> bool:
     return transaction_data["result"]["meta"]["err"] is not None
 
 
-def is_transaction_sol_transfer(transaction_data):
+def is_transaction_sol_transfer(transaction_data: dict) -> bool:
     return len(transaction_data["result"]["meta"]["innerInstructions"]) == 0
 
 
-def is_payment_address_correct(transaction_data):
+def is_payment_address_correct(transaction_data: dict) -> bool:
     return config.payment_wallet in transaction_data["result"]["transaction"]["message"]["accountKeys"]

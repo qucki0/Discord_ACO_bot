@@ -16,7 +16,8 @@ class AdminPayments(app_commands.Group):
     @app_commands.autocomplete(release_id=all_releases_autocomplete)
     @app_commands.describe(release_id="Mint name from /admin-mints get-all-mints-list or /mints get-all",
                            amount="amount of checkouts")
-    async def add_success(self, interaction: discord.Interaction, release_id: str, amount: int, user: discord.Member):
+    async def add_success(self, interaction: discord.Interaction, release_id: str, amount: int,
+                          user: discord.Member) -> None:
         mint = get_mint_by_id(release_id)
         if mint is None:
             await interaction.response.send_message(f"There are no releases named as {release_id}")
@@ -31,6 +32,6 @@ class AdminPayments(app_commands.Group):
 
     @app_commands.command(name="check-payments", description="Command to check your unpaid successes")
     @app_commands.check(admin_checker)
-    async def check_payments(self, interaction: discord.Interaction, user: discord.Member):
+    async def check_payments(self, interaction: discord.Interaction, user: discord.Member) -> None:
         member = get_member_by_id(user.id)
         await interaction.response.send_message(embed=embeds.unpaid_successes(member))

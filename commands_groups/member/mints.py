@@ -9,7 +9,7 @@ from functions.mints import add_mint_to_mints_list, check_mint_exist
 @app_commands.guild_only()
 class Mints(app_commands.Group):
     @app_commands.command(name="get-all", description="Get actual mints")
-    async def get_mints(self, interaction: discord.Interaction):
+    async def get_mints(self, interaction: discord.Interaction) -> None:
         embeds_to_send = [mint.get_as_embed() for mint in actual_mints]
         message_to_send = "**Let us know if we lost something. Just use `/mints request` for it!**"
         await interaction.response.send_message(message_to_send, embeds=embeds_to_send[:min(10, len(embeds_to_send))])
@@ -24,7 +24,7 @@ class Mints(app_commands.Group):
                            mint_timestamp="You can use https://www.epochconverter.com/ to get timestamp in seconds")
     @discord.app_commands.rename(release_id="release_name")
     async def request_mint(self, interaction: discord.Interaction, release_id: str, link: str = None,
-                           mint_timestamp: str = None):
+                           mint_timestamp: int = None) -> None:
         admins_to_ping = ""
         if check_mint_exist(release_id):
             await interaction.response.send_message(f"`{release_id}` already exist!", ephemeral=True)
@@ -34,7 +34,7 @@ class Mints(app_commands.Group):
         accept_button = discord.ui.Button(label="Accept", style=discord.ButtonStyle.green)
         reject_button = discord.ui.Button(label="Reject", style=discord.ButtonStyle.red)
 
-        async def accept_response(accept_interaction: discord.Interaction):
+        async def accept_response(accept_interaction: discord.Interaction) -> None:
             if not check_admin(accept_interaction.user.id):
                 await accept_interaction.response.send_message(
                     "You do not have enough permissions to do perform this operation.", ephemeral=True)
@@ -44,7 +44,7 @@ class Mints(app_commands.Group):
             await accept_interaction.client.get_channel(accept_interaction.channel_id).send(
                 f":green_circle:Request for `{release_id}` accepted")
 
-        async def reject_response(reject_interaction: discord.Interaction):
+        async def reject_response(reject_interaction: discord.Interaction) -> None:
             if not check_admin(reject_interaction.user.id):
                 await reject_interaction.response.send_message(
                     "You do not have enough permissions to do perform this operation.", ephemeral=True)

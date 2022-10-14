@@ -14,7 +14,7 @@ class Wallets(app_commands.Group):
     @app_commands.describe(release_id="Release name from /mints get-all",
                            wallets_str="Your wallets private keys separated by spaces")
     @discord.app_commands.rename(release_id="release_name", wallets_str="private_keys")
-    async def send_wallets(self, interaction: discord.Interaction, release_id: str, wallets_str: str):
+    async def send_wallets(self, interaction: discord.Interaction, release_id: str, wallets_str: str) -> None:
         member_id = interaction.user.id
         member = get_member_by_id(member_id)
         if member is None:
@@ -49,7 +49,7 @@ class Wallets(app_commands.Group):
     @app_commands.autocomplete(release_id=release_id_autocomplete)
     @app_commands.describe(release_id="Release name from /mints get-all")
     @discord.app_commands.rename(release_id="release_name")
-    async def check_wallets(self, interaction: discord.Interaction, release_id: str):
+    async def check_wallets(self, interaction: discord.Interaction, release_id: str) -> None:
         mint = get_mint_by_id(release_id)
         if mint is None:
             await interaction.response.send_message(f"There are no releases named as {release_id}", ephemeral=True)
@@ -76,7 +76,7 @@ class Wallets(app_commands.Group):
     @app_commands.describe(release_id="Release name from /mints get-all",
                            wallets='Private keys that you want to delete. Use "all" for select all wallets')
     @discord.app_commands.rename(release_id="release_name", wallets="private_keys")
-    async def delete_wallets(self, interaction: discord.Interaction, release_id: str, wallets: str):
+    async def delete_wallets(self, interaction: discord.Interaction, release_id: str, wallets: str) -> None:
         mint = get_mint_by_id(release_id)
         if mint is None:
             await interaction.response.send_message(f"There are no releases named as {release_id}")

@@ -1,7 +1,7 @@
 import random
 
 
-def encrypt_string(string):
+def encrypt_string(string: str) -> str:
     encrypted_line = "BACKUP"
     for i in range(2 * len(string)):
         if i % 2 == 0:
@@ -11,7 +11,7 @@ def encrypt_string(string):
     return encrypted_line
 
 
-def decrypt_string(string):
+def decrypt_string(string: str) -> str:
     string = string[6:]
     decrypted_line = ""
     for i in range(len(string)):

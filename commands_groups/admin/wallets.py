@@ -17,7 +17,7 @@ class AdminWallets(app_commands.Group):
     @app_commands.check(admin_checker)
     @app_commands.autocomplete(release_id=release_id_autocomplete)
     @app_commands.describe(release_id="Mint name only from /mints get-all")
-    async def get_wallets(self, interaction: discord.Interaction, release_id: str):
+    async def get_wallets(self, interaction: discord.Interaction, release_id: str) -> None:
         mint = get_mint_by_id(release_id)
         if mint is None:
             await interaction.response.send_message(f"There are no releases named as `{release_id}`")

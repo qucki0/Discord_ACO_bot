@@ -8,15 +8,16 @@ from functions.files import auto_backup
 
 
 class DiscordClient(commands.Bot):
-    def __init__(self, prefix="!"):
+    def __init__(self, prefix: str = "!") -> None:
         super().__init__(intents=discord.Intents.all(), command_prefix=prefix)
-        groups = [AdminMints, AdminWallets, Admin, AdminPayments, Mints, Wallets, Payments, WalletManager,
+        groups = [AdminMints, Admin, AdminPayments, AdminWallets,
+                  Mints, Wallets, Payments, WalletManager,
                   Owner, OwnerCheckers, OwnerStatistic]
         self.tree.add_command(ask_help)
         for group in groups:
             self.tree.add_command(group())
 
-    async def setup_hook(self):
+    async def setup_hook(self) -> None:
         await self.tree.sync()
         self.loop.create_task(auto_backup(self))
         print(f'{self.user} has connected to Discord!')

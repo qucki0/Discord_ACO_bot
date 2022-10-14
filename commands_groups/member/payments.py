@@ -15,7 +15,7 @@ class Payments(app_commands.Group):
     @app_commands.describe(release_id="Release name from /payments check-payments",
                            checkouts_quantity="The amount of checkouts you want to pay.")
     @discord.app_commands.rename(release_id="release_name")
-    async def pay(self, interaction: discord.Interaction, release_id: str, checkouts_quantity: int):
+    async def pay(self, interaction: discord.Interaction, release_id: str, checkouts_quantity: int) -> None:
         member_id = interaction.user.id
         member = get_member_by_id(member_id)
         if release_id not in member.payments:
@@ -30,6 +30,6 @@ class Payments(app_commands.Group):
         view.wallet_message = await interaction.client.get_channel(interaction.channel_id).send(config.payment_wallet)
 
     @app_commands.command(name="check-unpaid", description="Command to check your unpaid successes")
-    async def check_unpaid(self, interaction: discord.Interaction):
+    async def check_unpaid(self, interaction: discord.Interaction) -> None:
         member = get_member_by_id(interaction.user.id)
         await interaction.response.send_message(embed=embeds.unpaid_successes(member))
