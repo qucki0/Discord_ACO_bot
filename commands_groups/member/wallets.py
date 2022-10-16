@@ -50,25 +50,33 @@ class Wallets(app_commands.Group):
     @app_commands.describe(release_id="Release name from /mints get-all")
     @discord.app_commands.rename(release_id="release_name")
     async def check_wallets(self, interaction: discord.Interaction, release_id: str) -> None:
+        await interaction.response.defer()
         mint = get_mint_by_id(release_id)
         if mint is None:
-            await interaction.response.send_message(f"There are no releases named as {release_id}", ephemeral=True)
+            await interaction.edit_original_response(content=f"There are no releases named as {release_id}")
             return
 
         member_id = interaction.user.id
         member_name = interaction.user.name
 
-        message_to_send = f"{member_name} wallets for `{mint.id}`:\n```\n"
+        messages_to_send = [f"{member_name} wallets for `{mint.id}`:\n```\n"]
         member_wallets = mint.get_wallets_by_id(member_id)
         if not member_wallets:
-            await interaction.response.send_message(message_to_send + "Nothing\n```\n")
+            await interaction.edit_original_response(content=messages_to_send[0] + "Nothing\n```\n")
             return
 
-        for wallet in member_wallets:
-            message_to_send += f"{wallet}\n"
-        message_to_send += "```"
+        for i, wallet in enumerate(member_wallets):
+            if i % 15 == 0 and i != 0:
+                messages_to_send.append("```\n")
+            messages_to_send[i // 15] += f"{wallet}\n"
+            if i % 15 == 14:
+                messages_to_send[i // 15] += "```"
+        if messages_to_send[-1][-3:] != "```":
+            messages_to_send[-1] += "```"
 
-        await interaction.response.send_message(message_to_send)
+        await interaction.edit_original_response(content=messages_to_send[0])
+        for i in range(1, len(messages_to_send)):
+            await interaction.client.get_channel(interaction.channel_id).send(content=messages_to_send[i])
 
     @app_commands.command(name="delete",
                           description='Delete wallets separated by spaces for chosen release, "all" for all')
