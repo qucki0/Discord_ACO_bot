@@ -22,7 +22,7 @@ def get_member_by_id(member_id: int) -> ACOMember | None:
     return get_data_by_id_from_list(member_id, aco_members)
 
 
-def get_member_for_payments(user: discord.Member) -> ACOMember:
+def get_member_by_user(user: discord.Member) -> ACOMember:
     member = get_member_by_id(user.id)
     if member is None:
         add_member(user)
