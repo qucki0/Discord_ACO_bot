@@ -72,6 +72,7 @@ class Config(BaseModel):
     wallet_manager_link: str
     rpc_link: str
     payment_wallet: str
+    closed_category_id: int
 
 
 @dataclass

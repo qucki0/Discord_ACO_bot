@@ -10,8 +10,9 @@
     234
   ],
   "seconds_between_backups": 600,
-  "backup_channel_id": 123456,
+  "backup_channel_id": 123,
   "wallet_manager_link": "download link",
   "rpc_link": "",
-  "payment_wallet": ""
+  "payment_wallet": "",
+  "closed_category_id": 123
 }

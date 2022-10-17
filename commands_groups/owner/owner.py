@@ -26,5 +26,5 @@ class Owner(app_commands.Group):
 
     @app_commands.command(name="create-ticket-menu", description="OWNER COMMAND creates ticket menu")
     async def create_ticket_menu(self, interaction: discord.Interaction):
-        await interaction.channel.send(content="Take your ACO", view=CreateTicketView())
+        await interaction.channel.send(content="Take your ACO", view=CreateTicketView(config.closed_category_id))
         await interaction.response.send_message("Menu created")
