@@ -60,7 +60,7 @@ class RequestMintView(discord.ui.View):
         super().__init__()
 
     @discord.ui.button(label="Accept", style=discord.ButtonStyle.green)
-    async def accept_response(self, accept_interaction: discord.Interaction, button: discord.ui.Button) -> None:
+    async def accept_response_button(self, accept_interaction: discord.Interaction, button: discord.ui.Button) -> None:
         if not check_admin(accept_interaction.user.id):
             await accept_interaction.response.send_message(
                 "You do not have enough permissions to do perform this operation.", ephemeral=True)
@@ -75,7 +75,7 @@ class RequestMintView(discord.ui.View):
             view=None)
 
     @discord.ui.button(label="Reject", style=discord.ButtonStyle.red)
-    async def reject_response(self, reject_interaction: discord.Interaction, button: discord.ui.Button) -> None:
+    async def reject_response_button(self, reject_interaction: discord.Interaction, button: discord.ui.Button) -> None:
         if not check_admin(reject_interaction.user.id):
             await reject_interaction.response.send_message(
                 "You do not have enough permissions to do perform this operation.", ephemeral=True)
@@ -102,3 +102,29 @@ class AddMintModal(discord.ui.Modal, title='Create mint'):
         self.wallets_limit = int(str(self.wallets_limit))
         self.interaction = interaction
         self.stop()
+
+
+class CreateTicketView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Create ticket", style=discord.ButtonStyle.blurple, custom_id="ticket_button")
+    async def create_ticket_button(self, ticket_interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        ticket_name = f"{ticket_interaction.user.name}-{ticket_interaction.user.discriminator}".lower().replace(" ",
+                                                                                                                "-")
+        ticket = discord.utils.get(ticket_interaction.guild.text_channels, name=ticket_name)
+        if ticket is not None:
+            await ticket_interaction.response.send_message(f"You already have a ticket at {ticket.mention}",
+                                                           ephemeral=True)
+            return
+
+        overwrites = {ticket_interaction.guild.default_role: discord.PermissionOverwrite(view_channel=False),
+                      ticket_interaction.user: discord.PermissionOverwrite(view_channel=True, send_messages=True,
+                                                                           attach_files=True)}
+        category = ticket_interaction.channel.category
+        channel = await ticket_interaction.guild.create_text_channel(name=ticket_name, overwrites=overwrites,
+                                                                     category=category,
+                                                                     reason=f"Ticket for"
+                                                                            f" {ticket_interaction.user.mention}")
+        await channel.send(f"{ticket_interaction.user.mention} Welcome")
+        await ticket_interaction.response.send_message(f"Ticket created {channel.mention}", ephemeral=True)

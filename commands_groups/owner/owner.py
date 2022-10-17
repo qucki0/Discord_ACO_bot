@@ -3,6 +3,7 @@ from discord import app_commands
 
 from additions.all_data import config
 from additions.checkers import owner_checker
+from classes.discord_classes import CreateTicketView
 
 
 @app_commands.guild_only()
@@ -22,3 +23,8 @@ class Owner(app_commands.Group):
             await interaction.response.send_message(f"{user.name} is not admin", ephemeral=True)
         config.admins.remove(user.id)
         await interaction.response.send_message(f"Deleted {user.name} from admins list", ephemeral=True)
+
+    @app_commands.command(name="create-ticket-menu", description="OWNER COMMAND creates ticket menu")
+    async def create_ticket_menu(self, interaction: discord.Interaction):
+        await interaction.channel.send(content="Take your ACO", view=CreateTicketView())
+        await interaction.response.send_message("Menu created")
