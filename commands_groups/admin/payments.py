@@ -4,7 +4,7 @@ from discord import app_commands
 from additions import embeds
 from additions.autocomplete import all_releases_autocomplete
 from additions.checkers import admin_checker
-from functions.members import get_member_for_payments, get_member_by_id
+from functions.members import get_member_by_user, get_member_by_id
 from functions.mints import get_mint_by_id
 from functions.paymnets import add_checkouts
 
@@ -23,12 +23,13 @@ class AdminPayments(app_commands.Group):
             await interaction.response.send_message(f"There are no releases named as {release_id}")
             return
 
-        member = get_member_for_payments(user)
+        member = get_member_by_user(user)
         add_checkouts(member, mint, amount)
 
         await interaction.response.send_message(f"Added {amount} checkouts", ephemeral=True)
-        await interaction.client.get_channel(interaction.channel_id).send(
-            embed=embeds.success(user.name, release_id, member.payments[mint.id]["amount_of_checkouts"]))
+        if member.ticket_id is not None:
+            await interaction.client.get_channel(member.ticket_id).send(
+                embed=embeds.success(user.name, release_id, member.payments[mint.id]["amount_of_checkouts"]))
 
     @app_commands.command(name="check-payments", description="Command to check your unpaid successes")
     @app_commands.check(admin_checker)

@@ -3,7 +3,7 @@ import discord
 from additions import embeds
 from classes.classes import ACOMember
 from functions.blockchain import submit_transaction, get_transaction_hash_from_string
-from functions.members import check_admin
+from functions.members import check_admin, get_member_by_user
 from functions.mints import add_mint_to_mints_list
 
 
@@ -131,6 +131,8 @@ class CreateTicketView(discord.ui.View):
                                                                             f" {ticket_interaction.user.mention}")
         await channel.send(f"{ticket_interaction.user.mention} Welcome", view=TicketView(self.closed_category_id))
         await ticket_interaction.response.send_message(f"Ticket created {channel.mention}", ephemeral=True)
+        member = get_member_by_user(ticket_interaction.user)
+        member.ticket_id = channel.id
 
 
 class TicketView(discord.ui.View):
@@ -147,4 +149,6 @@ class TicketView(discord.ui.View):
         await close_interaction.channel.edit(category=closed_category, name=f"closed-{channel_name}",
                                              sync_permissions=True)
         await close_interaction.response.send_message(f"Ticket closed by {close_interaction.user.mention}")
+        member = get_member_by_user(close_interaction.user)
+        member.ticket_id = None
         self.stop()

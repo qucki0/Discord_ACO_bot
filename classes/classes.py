@@ -46,18 +46,26 @@ class ACOMember:
             self.id = member.id
             self.name = member.name
             self.mints = {}
-            self.payments = {}
+            self.payments: dict[str, dict[str, int]] = {}
+            self.ticket_id: int | None = None
         else:
             self.id = int(input_dict["id"])
             self.name = input_dict["name"]
             self.mints = input_dict["mints"]
             self.payments = input_dict["payments"]
+            if "ticket_id" in input_dict:
+                self.ticket_id = input_dict["ticket_id"]
+                if self.ticket_id is not None:
+                    self.ticket_id = int(self.ticket_id)
+            else:
+                self.ticket_id = None
 
     def get_as_dict(self) -> dict:
         data = {"id": self.id,
                 "name": self.name,
                 "mints": self.mints,
-                "payments": self.payments
+                "payments": self.payments,
+                "ticket_id": self.ticket_id
                 }
         return data
 
