@@ -1,10 +1,11 @@
 import discord
 from discord import app_commands
 
-from additions.all_data import config, aco_members
+from additions.all_data import config
 from additions.checkers import owner_checker
+from additions.embeds import tickets_menu
 from classes.discord_classes import CreateTicketView
-from additions.embeds import unpaid_successes
+from functions.paymnets import send_notifications
 
 
 @app_commands.guild_only()
@@ -26,22 +27,13 @@ class Owner(app_commands.Group):
         await interaction.response.send_message(f"Deleted {user.name} from admins list", ephemeral=True)
 
     @app_commands.command(name="create-ticket-menu", description="OWNER COMMAND creates ticket menu")
+    @app_commands.check(owner_checker)
     async def create_ticket_menu(self, interaction: discord.Interaction):
-        await interaction.channel.send(content="Take your ACO", view=CreateTicketView(config.closed_category_id))
-        await interaction.response.send_message("Menu created")
+        await interaction.channel.send(embed=tickets_menu(), view=CreateTicketView(config.closed_category_id))
+        await interaction.response.send_message("Menu created", ephemeral=True)
 
     @app_commands.command(name="send-notifications", description="OWNER COMMAND sends payment notifications for users")
+    @app_commands.check(owner_checker)
     async def send_notifications(self, interaction: discord.Interaction):
-        data_to_send = ""
-        for member in aco_members:
-            content = f"<@{member.id}>\nFriendly reminder to pay for checkouts."
-            if any(member.payments[key]["unpaid_amount"] != 0 for key in member.payments):
-                try:
-                    await interaction.client.get_user(member.id).send(content=content, embed=unpaid_successes(member))
-                except discord.errors.Forbidden:
-                    if member.ticket_id is not None:
-                        await interaction.client.get_channel(member.ticket_id).send(content=content,
-                                                                                    embed=unpaid_successes(member))
-                    else:
-                        data_to_send += f"<@{member.id}>\n"
-        await interaction.response.send_message(f"Can't reach this members:\n{data_to_send}\n")
+        await send_notifications(interaction.client)
+        await interaction.response.send_message(f"Notifications gone, check <#{config.notifications_channel_id}>")
