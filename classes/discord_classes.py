@@ -111,7 +111,7 @@ class CreateTicketView(discord.ui.View):
         self.closed_category_id = closed_category_id
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Create ticket", style=discord.ButtonStyle.blurple, custom_id="ticket_button")
+    @discord.ui.button(label="Create ticket", style=discord.ButtonStyle.gray, custom_id="ticket_button")
     async def create_ticket(self, ticket_interaction: discord.Interaction, button: discord.ui.Button) -> None:
         ticket_name = f"{ticket_interaction.user.name}-{ticket_interaction.user.discriminator}".lower().replace(" ",
                                                                                                                 "-")
@@ -129,7 +129,7 @@ class CreateTicketView(discord.ui.View):
                                                                      category=category,
                                                                      reason=f"Ticket for"
                                                                             f" {ticket_interaction.user.mention}")
-        await channel.send(f"{ticket_interaction.user.mention} Welcome", view=TicketView(self.closed_category_id))
+        await channel.send(view=TicketView(self.closed_category_id), embed=embeds.ticket())
         await ticket_interaction.response.send_message(f"Ticket created {channel.mention}", ephemeral=True)
         member = get_member_by_user(ticket_interaction.user)
         member.ticket_id = channel.id
@@ -152,3 +152,7 @@ class TicketView(discord.ui.View):
         member = get_member_by_user(close_interaction.user)
         member.ticket_id = None
         self.stop()
+
+    @discord.ui.button(label="Help", style=discord.ButtonStyle.blurple, custom_id="get_help")
+    async def get_help(self, help_interaction: discord.Interaction, button: discord.ui.Button):
+        await help_interaction.response.send_message(embeds=embeds.help_embeds())
