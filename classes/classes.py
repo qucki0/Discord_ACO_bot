@@ -81,6 +81,7 @@ class Config(BaseModel):
     rpc_link: str
     payment_wallet: str
     closed_category_id: int
+    notifications_channel_id: int
 
 
 @dataclass
