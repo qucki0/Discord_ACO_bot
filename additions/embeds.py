@@ -117,6 +117,20 @@ def mint_info(mint: Drop) -> discord.Embed:
     return mint_info_embed
 
 
+def tickets_menu() -> discord.Embed:
+    tickets_menu_embed = discord.Embed(title="Support",
+                                       description="Create a ticket using the button below",
+                                       colour=discord.Colour.red())
+    set_footer(tickets_menu_embed)
+    return tickets_menu_embed
+
+
+def ticket() -> discord.Embed:
+    ticket_embed = discord.Embed(description="Ticket menu",
+                                 colour=discord.Colour.red())
+    return ticket_embed
+
+
 def set_footer(embed: discord.Embed) -> None:
     icon_url = "https://cdn.discordapp.com/icons/838092056060624986/289b99bd777b929251cdbbd26bec96bd.webp"
     embed.set_footer(text="Aco Cola",
