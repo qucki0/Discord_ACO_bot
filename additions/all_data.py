@@ -6,11 +6,13 @@ from solana.rpc.api import Client
 from classes.blockchain import Transaction
 from classes.classes import Drop, ACOMember, Config, BackupData
 from functions.encryption import decrypt_string
+from typing import TypeVar
+
+T = TypeVar("T", Drop, ACOMember, Transaction)
 
 
 # to prevent circular import this function must be in this file
-def get_list_from_json(file_name: str, inner_class: type[Drop | ACOMember | Transaction]) \
-        -> list[Drop | ACOMember | Transaction]:
+def get_list_from_json(file_name: str, inner_class: type[T]) -> list[T]:
     if os.path.exists(file_name):
         with open(file_name, encoding="utf-8") as file:
             string = file.read()
