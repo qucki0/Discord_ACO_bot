@@ -70,6 +70,14 @@ class ACOMember:
         return data
 
 
+class SqlData(BaseModel):
+    user: str
+    password: str
+    db_name: str
+    host: str
+    port: int
+
+
 class Config(BaseModel):
     token: str
     admins: list[int]
@@ -82,6 +90,7 @@ class Config(BaseModel):
     payment_wallet: str
     closed_category_id: int
     notifications_channel_id: int
+    sql_data: SqlData
 
 
 @dataclass

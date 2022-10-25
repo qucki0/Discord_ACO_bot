@@ -15,5 +15,12 @@
   "rpc_link": "",
   "payment_wallet": "",
   "closed_category_id": 123,
-  "notifications_channel_id": 456
+  "notifications_channel_id": 456,
+  "sql_data": {
+    "user": "root",
+    "password": "password",
+    "db_name": "db_name",
+    "host": "127.0.0.1",
+    "port": 3306
+  }
 }

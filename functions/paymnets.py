@@ -35,12 +35,12 @@ async def send_notifications(client: discord.Client) -> None:
 
 
 async def auto_send_notifications(client: discord.Client) -> None:
-    timestamp_to_send = 1666429200
+    timestamp_to_send = 1666515600
     week = 7 * 24 * 60 * 60
-    while timestamp_to_send < int(time.time()):
-        timestamp_to_send += week
 
     while True:
+        while timestamp_to_send < int(time.time()):
+            timestamp_to_send += week
         time_to_wait = timestamp_to_send - int(time.time())
         await asyncio.sleep(time_to_wait)
         await send_notifications(client)
