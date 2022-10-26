@@ -95,16 +95,28 @@ class SqlClient(SqlBase):
         query = queries.delete_data.format(table=table, primary_key=primary_key_str)
         self.execute_query_and_commit(query)
 
-    def select_data(self, table: str, data_to_select: list[str] = None, condition: dict[str: int | str] = None) \
-            -> list[dict[str: int | str]]:
+    def select_data(self, table: str, data_to_select: list[str] = None, condition: dict[str: int | str] = None,
+                    join_tables: list[str] = None, join_conditions: list[str] = None) -> list[dict[str: int | str]]:
+
         if data_to_select is not None:
             data_to_select_str = ", ".join(data_to_select)
         else:
             data_to_select_str = "*"
+
         if condition is not None:
             condition_str = self.get_dict_as_str(condition, " AND ")
         else:
             condition_str = "1"
-        query = queries.select_data.format(data_to_select=data_to_select_str, table=table, condition=condition_str)
+
+        if join_tables is not None:
+            joins = []
+            for join_table, join_condition in zip(join_tables, join_conditions):
+                joins.append(f"JOIN {join_table} ON {join_condition}")
+            joins_str = " ".join(joins)
+            query = queries.select_data_with_joins.format(data_to_select=data_to_select_str, joins=joins_str,
+                                                          table=table, condition=condition_str)
+        else:
+            query = queries.select_data.format(data_to_select=data_to_select_str, table=table, condition=condition_str)
+
         data = self.execute_query(query)
         return data
