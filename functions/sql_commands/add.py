@@ -20,4 +20,5 @@ def wallet(wallet_to_add: Wallet) -> None:
 
 
 def payment(payment_to_add: Payment) -> None:
-    sql_client.add_data("Payments", payment_to_add.dict())
+    data = payment_to_add.dict()
+    sql_client.add_data("Payments", {key: data[key] for key in data if key != "mint_name"})
