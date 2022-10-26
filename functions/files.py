@@ -7,16 +7,16 @@ import discord
 
 from additions.all_data import config, backup_data
 from classes.blockchain import Transaction
-from classes.classes import Drop, ACOMember
+from classes.classes import Mint, ACOMember
 from functions.encryption import encrypt_string
 
 
-def save_json(arr: list[Drop | ACOMember | Transaction], filename: str) -> None:
+def save_json(arr: list[Mint | ACOMember | Transaction], filename: str) -> None:
     with open(os.path.join("data", filename), "w", encoding="utf-8") as file:
         file.write(encrypt_string(json.dumps(get_list_for_backup(arr), sort_keys=True)))
 
 
-def get_list_for_backup(arr: list[Drop | ACOMember | Transaction]) -> list[dict]:
+def get_list_for_backup(arr: list[Mint | ACOMember | Transaction]) -> list[dict]:
     return [a.get_as_dict() for a in arr]
 
 

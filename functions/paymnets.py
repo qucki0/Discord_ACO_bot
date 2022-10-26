@@ -5,10 +5,10 @@ import discord
 
 from additions.all_data import aco_members, config
 from additions.embeds import unpaid_successes
-from classes.classes import ACOMember, Drop
+from classes.classes import ACOMember, Mint
 
 
-def add_checkouts(member: ACOMember, mint: Drop, amount_to_add: int) -> None:
+def add_checkouts(member: ACOMember, mint: Mint, amount_to_add: int) -> None:
     if mint.id not in member.payments:
         member.payments[mint.id] = {"amount_of_checkouts": amount_to_add,
                                     "unpaid_amount": amount_to_add}

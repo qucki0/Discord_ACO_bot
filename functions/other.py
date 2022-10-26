@@ -1,7 +1,7 @@
 import re
 from typing import TypeVar
 
-from classes.classes import Drop, ACOMember
+from classes.classes import Mint, ACOMember
 
 
 def remove_emoji(string: str) -> str:
@@ -28,7 +28,7 @@ def remove_emoji(string: str) -> str:
     return emoji_pattern.sub(r'', string)
 
 
-T = TypeVar("T", Drop, ACOMember)
+T = TypeVar("T", Mint, ACOMember)
 
 
 def get_data_by_id_from_list(id_to_find: int | str, array_to_check: list[T]) -> T | None:

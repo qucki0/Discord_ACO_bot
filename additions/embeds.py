@@ -2,10 +2,10 @@ import discord
 
 from additions import all_data
 from classes.blockchain import Transaction
-from classes.classes import ACOMember, Drop
+from classes.classes import ACOMember, Mint
 
 
-def mint_data(mint: Drop) -> discord.Embed:
+def mint_data(mint: Mint) -> discord.Embed:
     embed = discord.Embed(title=f":bell:{mint.id}", colour=discord.Colour.red())
     if mint.link is not None:
         embed.add_field(name="Link:", value=mint.link)
@@ -111,7 +111,7 @@ def transaction_info(transaction: Transaction) -> discord.Embed:
     return transaction_data_embed
 
 
-def mint_info(mint: Drop) -> discord.Embed:
+def mint_info(mint: Mint) -> discord.Embed:
     mint_info_embed = discord.Embed(title=f"{mint.id}", colour=discord.Colour.red())
     mint_info_embed.add_field(name="Checkouts:", value=f"{mint.checkouts}")
     return mint_info_embed

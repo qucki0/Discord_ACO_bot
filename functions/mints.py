@@ -1,7 +1,7 @@
 import discord
 
 from additions.all_data import actual_mints, all_mints, config, aco_members
-from classes.classes import Drop
+from classes.classes import Mint
 from functions.blockchain import is_hash_length_correct
 from functions.other import get_data_by_id_from_list, get_wallets_from_string
 
@@ -11,7 +11,7 @@ async def add_mint_to_mints_list(interaction: discord.Interaction, release_id: s
     if check_mint_exist(release_id):
         await interaction.response.send_message(f"{release_id} already exist!", ephemeral=True)
     else:
-        mint = Drop(release_id, link, timestamp, wallets_limit)
+        mint = Mint(release_id, link, timestamp, wallets_limit)
         actual_mints.append(mint)
         all_mints.append(mint)
         await interaction.client.get_channel(config.alert_channel_id).send("New mint found", embed=mint.get_as_embed())
@@ -22,7 +22,7 @@ def check_mint_exist(release_id: str) -> bool:
     return any(release_id.lower().strip() == drop.id.lower() for drop in all_mints)
 
 
-def get_mint_by_id(release_id: str) -> Drop | None:
+def get_mint_by_id(release_id: str) -> Mint | None:
     return get_data_by_id_from_list(release_id, actual_mints)
 
 
@@ -37,7 +37,7 @@ def get_unpaid_mints() -> dict[str: list[int, int]]:
     return data
 
 
-def add_wallets_to_mint(wallets_to_add: list[str], mint: Drop, member_id: int) -> tuple[list[str], list[str], int]:
+def add_wallets_to_mint(wallets_to_add: list[str], mint: Mint, member_id: int) -> tuple[list[str], list[str], int]:
     if member_id not in mint.wallets:
         mint.wallets[member_id] = set()
 
@@ -60,7 +60,7 @@ def add_wallets_to_mint(wallets_to_add: list[str], mint: Drop, member_id: int) -
     return not_private_keys, already_exist_keys, added_wallets
 
 
-def delete_wallets_from_mint(wallets_to_delete: str, mint: Drop, member_id: int) -> int:
+def delete_wallets_from_mint(wallets_to_delete: str, mint: Mint, member_id: int) -> int:
     member_wallets = mint.get_wallets_by_id(member_id)
     wallets_len_before_deleting = len(member_wallets)
     if wallets_to_delete.lower().strip() == "all":
