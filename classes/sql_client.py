@@ -14,6 +14,7 @@ class SqlBase:
         self.host = host
         self.port = port
         self.connection = None
+        self.start()
 
     def connect(self) -> None:
         self.connection = pymysql.connect(
@@ -32,7 +33,6 @@ class SqlBase:
         self.connection.close()
 
     def execute_query(self, query) -> list[dict[str: int | str]]:
-        print(query)
         cursor = self.connection.cursor()
         cursor.execute(query)
         return cursor.fetchall()
@@ -107,5 +107,4 @@ class SqlClient(SqlBase):
             condition_str = "1"
         query = queries.select_data.format(data_to_select=data_to_select_str, table=table, condition=condition_str)
         data = self.execute_query(query)
-        print(data)
         return data
