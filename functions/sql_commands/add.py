@@ -8,7 +8,8 @@ def member(member_to_add: ACOMember) -> None:
 
 
 def mint(mint_to_add: Mint) -> None:
-    sql_client.add_data("Mints", mint_to_add.dict())
+    data = mint_to_add.dict()
+    sql_client.add_data("Mints", {key: data[key] for key in data if key != "id"})
 
 
 def transaction(transaction_to_add: Transaction) -> None:
