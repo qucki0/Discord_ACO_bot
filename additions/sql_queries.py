@@ -56,3 +56,5 @@ change_data = "UPDATE {table} SET {data_to_change} WHERE {primary_key}"
 delete_data = "DELETE FROM {table} WHERE {primary_key}"
 
 select_data = "SELECT {data_to_select} FROM {table} WHERE {condition}"
+
+select_data_with_joins = "SELECT {data_to_select} FROM {table} {joins} WHERE {condition}"
