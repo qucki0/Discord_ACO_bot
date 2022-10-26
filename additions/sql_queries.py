@@ -55,4 +55,4 @@ change_data = "UPDATE {table} SET {data_to_change} WHERE {primary_key}"
 
 delete_data = "DELETE FROM {table} WHERE {primary_key}"
 
-get_mint_state = "SELECT valid FROM Mints WHERE id={id}"
+select_data = "SELECT {data_to_select} FROM {table} WHERE {condition}"

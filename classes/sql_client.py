@@ -31,7 +31,8 @@ class SqlBase:
     def stop(self) -> None:
         self.connection.close()
 
-    def execute_query(self, query):
+    def execute_query(self, query) -> list[dict[str: int | str]]:
+        print(query)
         cursor = self.connection.cursor()
         cursor.execute(query)
         return cursor.fetchall()
@@ -46,16 +47,17 @@ class SqlBase:
 
 class SqlClient(SqlBase):
     @staticmethod
-    def get_dict_as_str_for_changes(data_to_change: dict[str: int | str], separator: str) -> str:
+    def get_dict_as_str(data_to_change: dict[str: int | str], separator: str) -> str:
         changes = []
         for key in data_to_change:
             value = data_to_change[key]
-            if isinstance(value, str):
-                changes.append(f"{key} = '{value}'")
-            elif isinstance(value, int | float):
-                changes.append(f"{key} = {value}")
-            elif value is None:
-                changes.append(f"{key} = NULL")
+            match value:
+                case str():
+                    changes.append(f"{key} = '{value}'")
+                case int() | float():
+                    changes.append(f"{key} = {value}")
+                case None:
+                    changes.append(f"{key} = NULL")
         return separator.join(changes)
 
     def create_tables(self) -> None:
@@ -71,23 +73,39 @@ class SqlClient(SqlBase):
         values_to_add = []
         for key in data_to_add:
             value = data_to_add[key]
-            if isinstance(value, str):
-                values_to_add.append(f"'{value}'")
-            elif isinstance(value, int | float):
-                values_to_add.append(f"{value}")
-            elif value is None:
-                values_to_add.append("NULL")
+            match value:
+                case str():
+                    values_to_add.append(f"'{value}'")
+                case int() | float():
+                    values_to_add.append(f"{value}")
+                case None:
+                    values_to_add.append("NULL")
         query = queries.add_data.format(table_and_columns=columns_to_add, values=", ".join(values_to_add))
         self.execute_query_and_commit(query)
 
     def change_data(self, table: str, data_to_change: dict[str: int | str], primary_key: dict[str: int | str]) -> None:
-        data_to_change_str = self.get_dict_as_str_for_changes(data_to_change, ", ")
-        primary_key_str = self.get_dict_as_str_for_changes(primary_key, " and ")
+        data_to_change_str = self.get_dict_as_str(data_to_change, ", ")
+        primary_key_str = self.get_dict_as_str(primary_key, " and ")
         query = queries.change_data.format(table=table, data_to_change=data_to_change_str,
                                            primary_key=primary_key_str)
         self.execute_query_and_commit(query)
 
     def delete_data(self, table: str, primary_key: dict[str: int | str]) -> None:
-        primary_key_str = self.get_dict_as_str_for_changes(primary_key, " and ")
+        primary_key_str = self.get_dict_as_str(primary_key, " and ")
         query = queries.delete_data.format(table=table, primary_key=primary_key_str)
         self.execute_query_and_commit(query)
+
+    def select_data(self, table: str, data_to_select: list[str] = None, condition: dict[str: int | str] = None) \
+            -> list[dict[str: int | str]]:
+        if data_to_select is not None:
+            data_to_select_str = ", ".join(data_to_select)
+        else:
+            data_to_select_str = "*"
+        if condition is not None:
+            condition_str = self.get_dict_as_str(condition, " AND ")
+        else:
+            condition_str = "1"
+        query = queries.select_data.format(data_to_select=data_to_select_str, table=table, condition=condition_str)
+        data = self.execute_query(query)
+        print(data)
+        return data
