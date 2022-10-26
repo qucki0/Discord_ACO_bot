@@ -28,6 +28,7 @@ class Wallet(BaseModel):
 
 class Payment(BaseModel):
     mint_id: int
+    mint_name: str
     member_id: int
     amount_of_checkouts: int
 
