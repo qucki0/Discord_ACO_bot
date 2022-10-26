@@ -29,5 +29,30 @@ def wallet(private_key: str) -> Wallet:
 
 
 def payment(mint_id: int, member_id: int) -> Payment:
-    data = sql_client.select_data("Payments", condition={"mint_id": mint_id, "member_id": member_id})[0]
+    data = sql_client.select_data("Payments as p", data_to_select=["p.*, m.name as mint_name"],
+                                  condition={"p.mint_id": mint_id, "p.member_id": member_id},
+                                  join_tables=["Mints as m"],
+                                  join_conditions=["p.mint_id = m.id"])[0]
     return Payment.parse_obj(data)
+
+
+def actual_mints() -> list[Mint]:
+    data = sql_client.select_data("Mints", condition={"valid": 1})
+    return [Mint.parse_obj(d) for d in data]
+
+
+def all_mints() -> list[Mint]:
+    data = sql_client.select_data("Mints")
+    return [Mint.parse_obj(d) for d in data]
+
+
+def member_payments(member_id: int) -> list[Payment]:
+    data = sql_client.select_data("Payments as p", data_to_select=["p.*, m.name as mint_name"],
+                                  condition={"p.member_id": member_id}, join_tables=["Mints as m"],
+                                  join_conditions=["p.mint_id = m.id"])
+    return [Payment.parse_obj(d) for d in data]
+
+
+def mint_name_by_id(mint_id: int) -> str:
+    data = sql_client.select_data("Mints", data_to_select=["name"], condition={"id": mint_id})
+    return data[0]["name"]
