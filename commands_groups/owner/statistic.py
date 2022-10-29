@@ -4,16 +4,16 @@ from discord import app_commands
 from additions.autocomplete import all_releases_autocomplete
 from additions.checkers import owner_checker
 from additions.embeds import mint_info
-from functions.mints import get_mint_by_id, get_unpaid_mints
+from functions.mints import get_mint_by_name, get_unpaid_mints
 
 
 class OwnerStatistic(app_commands.Group):
     @app_commands.command(name="mint", description="OWNER COMMAND checking member stats")
     @app_commands.check(owner_checker)
-    @app_commands.describe(release_id="Release name")
-    @app_commands.autocomplete(release_id=all_releases_autocomplete)
-    async def mint_statistic(self, interaction: discord.Interaction, release_id: str) -> None:
-        mint = get_mint_by_id(release_id)
+    @app_commands.describe(release_name="Release name")
+    @app_commands.autocomplete(release_name=all_releases_autocomplete)
+    async def mint_statistic(self, interaction: discord.Interaction, release_name: str) -> None:
+        mint = get_mint_by_name(release_name)
         if mint is None:
             await interaction.response.send_message("No info about this mint")
             return

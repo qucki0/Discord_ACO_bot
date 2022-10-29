@@ -5,7 +5,8 @@ from additions import embeds
 from additions.all_data import config
 from additions.autocomplete import unpaid_release_ids_autocomplete
 from classes.discord_classes import SubmitTransactionView
-from functions.members import get_member_by_id
+from functions import sql_commands
+from functions.members import get_member_by_user
 
 
 @app_commands.guild_only()
@@ -17,11 +18,12 @@ class Payments(app_commands.Group):
     @discord.app_commands.rename(release_id="release_name")
     async def pay(self, interaction: discord.Interaction, release_id: str, checkouts_quantity: int) -> None:
         member_id = interaction.user.id
-        member = get_member_by_id(member_id)
-        if release_id not in member.payments:
+        member = get_member_by_user(interaction.user)
+        if not sql_commands.check_exist.payment(release_id, member_id):
             await interaction.response.send_message(f"There are no releases named as {release_id}")
             return
-        if checkouts_quantity > member.payments[release_id]["unpaid_amount"] or checkouts_quantity <= 0:
+        payment = sql_commands.get.payment(release_id, member_id)
+        if checkouts_quantity > payment.amount_of_checkouts or checkouts_quantity <= 0:
             await interaction.response.send_message("Wrong checkouts quantity", ephemeral=True)
             return
         view = SubmitTransactionView(interaction, member, release_id, checkouts_quantity)
@@ -31,5 +33,5 @@ class Payments(app_commands.Group):
 
     @app_commands.command(name="check-unpaid", description="Command to check your unpaid successes")
     async def check_unpaid(self, interaction: discord.Interaction) -> None:
-        member = get_member_by_id(interaction.user.id)
+        member = get_member_by_user(interaction.user)
         await interaction.response.send_message(embed=embeds.unpaid_successes(member))

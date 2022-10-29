@@ -1,23 +1,24 @@
 import discord
 from discord import app_commands
 
-from additions.all_data import actual_mints, all_mints
-from functions.members import get_member_by_id
+from functions import sql_commands
 
 
 async def release_id_autocomplete(interaction: discord.Interaction, current: str) -> list[app_commands.Choice]:
-    mints = [mint.id for mint in actual_mints if current.strip().lower() in mint.id.lower()]
+    actual_mints = sql_commands.get.actual_mints()
+    mints = [mint.name for mint in actual_mints if current.strip().lower() in mint.name.lower()]
     return get_choices_from_list(mints, current)
 
 
 async def unpaid_release_ids_autocomplete(interaction: discord.Interaction, current: str) -> list[app_commands.Choice]:
-    member = get_member_by_id(interaction.user.id)
-    mints = [mint for mint in member.payments if member.payments[mint]["unpaid_amount"] > 0]
+    payments = sql_commands.get.member_unpaid_payments(interaction.user.id)
+    mints = [payment.mint_name for payment in payments if payment.amount_of_checkouts > 0]
     return get_choices_from_list(mints, current)
 
 
 async def all_releases_autocomplete(interaction: discord.Interaction, current: str) -> list[app_commands.Choice]:
-    mints = [mint.id for mint in reversed(all_mints) if current.strip().lower() in mint.id.lower()]
+    all_mints = sql_commands.get.all_mints()
+    mints = [mint.name for mint in reversed(all_mints) if current.strip().lower() in mint.name.lower()]
     return get_choices_from_list(mints, current)
 
 

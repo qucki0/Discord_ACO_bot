@@ -1,13 +1,13 @@
 import discord
 
-from additions.all_data import aco_members, config
+from additions.all_data import config
 from classes.classes import ACOMember
-from functions.other import remove_emoji, get_data_by_id_from_list
+from functions import sql_commands
+from functions.other import remove_emoji
 
 
 def add_member(member: discord.Member) -> None:
-    if all(member.id != aco_member.id for aco_member in aco_members):
-        aco_members.append(ACOMember(member))
+    ACOMember(id=member.id, name=member.name)
 
 
 def get_member_name_by_id(member_id: int) -> str:
@@ -19,12 +19,8 @@ def check_admin(member_id: int) -> bool:
 
 
 def get_member_by_id(member_id: int) -> ACOMember | None:
-    return get_data_by_id_from_list(member_id, aco_members)
+    return sql_commands.get.member(member_id)
 
 
 def get_member_by_user(user: discord.Member) -> ACOMember:
-    member = get_member_by_id(user.id)
-    if member is None:
-        add_member(user)
-        member = get_member_by_id(user.id)
-    return member
+    return ACOMember(id=user.id, name=user.name)

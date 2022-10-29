@@ -3,34 +3,36 @@ import time
 
 import discord
 
-from additions.all_data import aco_members, config
+from additions.all_data import config
 from additions.embeds import unpaid_successes
-from classes.classes import ACOMember, Mint
+from classes.classes import ACOMember, Mint, Payment
+from functions import sql_commands
 
 
-def add_checkouts(member: ACOMember, mint: Mint, amount_to_add: int) -> None:
-    if mint.id not in member.payments:
-        member.payments[mint.id] = {"amount_of_checkouts": amount_to_add,
-                                    "unpaid_amount": amount_to_add}
+def add_checkout(member: ACOMember, mint: Mint, amount_to_add: int) -> Payment:
+    if sql_commands.check_exist.payment(mint.id, member.id):
+        payment = sql_commands.get.payment(mint.id, member.id)
     else:
-        member.payments[mint.id]["amount_of_checkouts"] += amount_to_add
-        member.payments[mint.id]["unpaid_amount"] += amount_to_add
+        payment = Payment(mint_id=mint.id, mint_name=mint.name, member_id=member.id, amount_of_checkouts=0)
+    payment.amount_of_checkouts += amount_to_add
     mint.checkouts += amount_to_add
+    return payment
 
 
 async def send_notifications(client: discord.Client) -> None:
     response = ""
-    for member in aco_members:
-        content = f"<@{member.id}>\nFriendly reminder to pay for checkouts."
-        if any(member.payments[key]["unpaid_amount"] != 0 for key in member.payments):
-            try:
-                await client.get_user(member.id).send(content=content, embed=unpaid_successes(member))
-            except discord.errors.Forbidden:
-                if member.ticket_id is not None:
-                    await client.get_channel(member.ticket_id).send(content=content,
-                                                                    embed=unpaid_successes(member))
-                else:
-                    response += f"<@{member.id}>\n"
+    payments = sql_commands.get.unpaid_checkouts()
+    for payment in payments:
+        content = f"<@{payment.member_id}>\nFriendly reminder to pay for checkouts."
+        member = sql_commands.get.member(payment.member_id)
+        try:
+            await client.get_user(member.id).send(content=content, embed=unpaid_successes(member))
+        except discord.errors.Forbidden:
+            if member.ticket_id is not None:
+                await client.get_channel(member.ticket_id).send(content=content,
+                                                                embed=unpaid_successes(member))
+            else:
+                response += f"<@{member.id}>\n"
     await client.get_channel(config.notifications_channel_id).send(f"Can't reach this members:\n{response}\n")
 
 

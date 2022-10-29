@@ -25,7 +25,7 @@ class SubmitTransactionView(discord.ui.View):
         await transaction_modal.wait()
 
         tx_hash = transaction_modal.tx_hash
-        status, sol_amount = submit_transaction(tx_hash, self.member, self.release_id, self.checkouts_quantity)
+        status, sol_amount = submit_transaction(tx_hash, self.member.id, self.release_id, self.checkouts_quantity)
         if sol_amount != -1:
             await self.original_interaction.delete_original_response()
             await self.wallet_message.delete()

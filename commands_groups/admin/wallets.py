@@ -6,9 +6,8 @@ from discord import app_commands
 
 from additions.autocomplete import release_id_autocomplete
 from additions.checkers import admin_checker
+from functions import sql_commands
 from functions.files import create_wallets_files
-from functions.members import get_member_name_by_id
-from functions.mints import get_mint_by_id
 
 
 @app_commands.guild_only()
@@ -18,19 +17,25 @@ class AdminWallets(app_commands.Group):
     @app_commands.autocomplete(release_id=release_id_autocomplete)
     @app_commands.describe(release_id="Mint name only from /mints get-all")
     async def get_wallets(self, interaction: discord.Interaction, release_id: str) -> None:
-        mint = get_mint_by_id(release_id)
-        if mint is None:
+        if not sql_commands.check_exist.mint(mint_name=release_id):
             await interaction.response.send_message(f"There are no releases named as `{release_id}`")
             return
-        if all(not mint.wallets[member_id] for member_id in mint.wallets):
+        mint_wallets = sql_commands.get.wallets_for_mint(release_id)
+        if not mint_wallets:
             await interaction.response.send_message(f"There are no wallets for `{release_id}`")
             return
+        mint_wallets.sort(key=lambda w: w.member_id)
         base_wallets_dir = "wallets_to_send"
         wallets = []
-        for member_id in mint.wallets:
-            member_name = get_member_name_by_id(member_id)
-            for i, wallet in enumerate(mint.wallets[member_id], 1):
-                wallets.append((f"{member_name}{i}", wallet))
+        members_info = {}
+        for wallet in mint_wallets:
+            if wallet.member_id not in members_info:
+                member_name = sql_commands.get.member(wallet.member_id).name
+                members_info[wallet.member_id] = {"name": member_name, "wallets_count": 0}
+            member_name = members_info[wallet.member_id]["name"]
+            members_info[wallet.member_id]["wallets_count"] += 1
+            wallet_number = members_info[wallet.member_id]["wallets_count"]
+            wallets.append((f"{member_name}{wallet_number}", wallet.private_key))
         if not os.path.exists(base_wallets_dir):
             os.mkdir(base_wallets_dir)
         timestamp = int(time.time())

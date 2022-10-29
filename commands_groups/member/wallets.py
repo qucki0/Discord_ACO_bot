@@ -2,32 +2,31 @@ import discord
 from discord import app_commands
 
 from additions.autocomplete import release_id_autocomplete
-from functions.members import add_member, get_member_by_id
-from functions.mints import get_mint_by_id, add_wallets_to_mint, delete_wallets_from_mint
+from functions import sql_commands
+from functions.members import add_member
+from functions.mints import get_mint_by_name, add_wallets_to_mint, delete_wallets_from_mint
 from functions.other import get_wallets_from_string
 
 
 @app_commands.guild_only()
 class Wallets(app_commands.Group):
     @app_commands.command(name="send", description="Send wallets separated by spaces for chosen release")
-    @app_commands.autocomplete(release_id=release_id_autocomplete)
-    @app_commands.describe(release_id="Release name from /mints get-all",
+    @app_commands.autocomplete(release_name=release_id_autocomplete)
+    @app_commands.describe(release_name="Release name from /mints get-all",
                            wallets_str="Your wallets private keys separated by spaces")
-    @discord.app_commands.rename(release_id="release_name", wallets_str="private_keys")
-    async def send_wallets(self, interaction: discord.Interaction, release_id: str, wallets_str: str) -> None:
+    @discord.app_commands.rename(release_name="release_name", wallets_str="private_keys")
+    async def send_wallets(self, interaction: discord.Interaction, release_name: str, wallets_str: str) -> None:
         member_id = interaction.user.id
-        member = get_member_by_id(member_id)
-        if member is None:
-            add_member(interaction.user)
+        add_member(interaction.user)
         wallets = get_wallets_from_string(wallets_str)
 
         if not len(wallets):
             await interaction.response.send_message("Please input wallets keys")
             return
 
-        mint = get_mint_by_id(release_id)
+        mint = get_mint_by_name(release_name)
         if mint is None:
-            await interaction.response.send_message(f"There are no releases named as {release_id}")
+            await interaction.response.send_message(f"There are no releases named as {release_name}")
             return
 
         if mint.wallets_limit < len(wallets):
@@ -46,21 +45,21 @@ class Wallets(app_commands.Group):
         await interaction.response.send_message(response_message)
 
     @app_commands.command(name="check", description="Check the wallets that you sent")
-    @app_commands.autocomplete(release_id=release_id_autocomplete)
-    @app_commands.describe(release_id="Release name from /mints get-all")
-    @discord.app_commands.rename(release_id="release_name")
-    async def check_wallets(self, interaction: discord.Interaction, release_id: str) -> None:
+    @app_commands.autocomplete(release_name=release_id_autocomplete)
+    @app_commands.describe(release_name="Release name from /mints get-all")
+    @discord.app_commands.rename(release_name="release_name")
+    async def check_wallets(self, interaction: discord.Interaction, release_name: str) -> None:
         await interaction.response.defer()
-        mint = get_mint_by_id(release_id)
+        mint = get_mint_by_name(release_name)
         if mint is None:
-            await interaction.edit_original_response(content=f"There are no releases named as {release_id}")
+            await interaction.edit_original_response(content=f"There are no releases named as {release_name}")
             return
 
         member_id = interaction.user.id
         member_name = interaction.user.name
 
-        messages_to_send = [f"{member_name} wallets for `{mint.id}`:\n```\n"]
-        member_wallets = mint.get_wallets_by_id(member_id)
+        messages_to_send = [f"{member_name} wallets for `{mint.name}`:\n```\n"]
+        member_wallets = sql_commands.get.member_wallets_for_mint(member_id, mint.id)
         if not member_wallets:
             await interaction.edit_original_response(content=messages_to_send[0] + "Nothing\n```\n")
             return
@@ -68,7 +67,7 @@ class Wallets(app_commands.Group):
         for i, wallet in enumerate(member_wallets):
             if i % 15 == 0 and i != 0:
                 messages_to_send.append("```\n")
-            messages_to_send[i // 15] += f"{wallet}\n"
+            messages_to_send[i // 15] += f"{wallet.private_key}\n"
             if i % 15 == 14:
                 messages_to_send[i // 15] += "```"
         if messages_to_send[-1][-3:] != "```":
@@ -80,18 +79,18 @@ class Wallets(app_commands.Group):
 
     @app_commands.command(name="delete",
                           description='Delete wallets separated by spaces for chosen release, "all" for all')
-    @app_commands.autocomplete(release_id=release_id_autocomplete)
-    @app_commands.describe(release_id="Release name from /mints get-all",
+    @app_commands.autocomplete(release_name=release_id_autocomplete)
+    @app_commands.describe(release_name="Release name from /mints get-all",
                            wallets='Private keys that you want to delete. Use "all" for select all wallets')
-    @discord.app_commands.rename(release_id="release_name", wallets="private_keys")
-    async def delete_wallets(self, interaction: discord.Interaction, release_id: str, wallets: str) -> None:
-        mint = get_mint_by_id(release_id)
+    @discord.app_commands.rename(release_name="release_name", wallets="private_keys")
+    async def delete_wallets(self, interaction: discord.Interaction, release_name: str, wallets: str) -> None:
+        mint = get_mint_by_name(release_name)
         if mint is None:
-            await interaction.response.send_message(f"There are no releases named as {release_id}")
+            await interaction.response.send_message(f"There are no releases named as {release_name}")
             return
 
         member_id = interaction.user.id
-        member_wallets = mint.get_wallets_by_id(member_id)
+        member_wallets = sql_commands.get.member_wallets_for_mint(member_id, mint.id)
         if not member_wallets:
             await interaction.response.send_message(f"First you need to send wallets!")
             return

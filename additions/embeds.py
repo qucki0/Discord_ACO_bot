@@ -3,10 +3,11 @@ import discord
 from additions import all_data
 from classes.blockchain import Transaction
 from classes.classes import ACOMember, Mint
+from functions import sql_commands
 
 
 def mint_data(mint: Mint) -> discord.Embed:
-    embed = discord.Embed(title=f":bell:{mint.id}", colour=discord.Colour.red())
+    embed = discord.Embed(title=f":bell:{mint.name}", colour=discord.Colour.red())
     if mint.link is not None:
         embed.add_field(name="Link:", value=mint.link)
     if mint.timestamp is not None:
@@ -22,9 +23,9 @@ def unpaid_successes(member: ACOMember) -> discord.Embed:
         return discord.Embed(title=f"New member unpaid successes", colour=discord.Colour.red(),
                              description="Nothing to see here;)")
     embed = discord.Embed(title=f"{member.name} Unpaid Successes", colour=discord.Colour.red())
-    for i, key in enumerate(member.payments):
-        if member.payments[key]["unpaid_amount"]:
-            embed.add_field(name=f"{key}:", value=member.payments[key]['unpaid_amount'], inline=i % 4 != 3)
+    payments = sql_commands.get.member_unpaid_payments(member.id)
+    for i, payment in enumerate(payments):
+        embed.add_field(name=f"{payment.mint_name}:", value=payment.amount_of_checkouts, inline=i % 4 != 3)
     return embed
 
 
@@ -112,7 +113,7 @@ def transaction_info(transaction: Transaction) -> discord.Embed:
 
 
 def mint_info(mint: Mint) -> discord.Embed:
-    mint_info_embed = discord.Embed(title=f"{mint.id}", colour=discord.Colour.red())
+    mint_info_embed = discord.Embed(title=f"{mint.name}", colour=discord.Colour.red())
     mint_info_embed.add_field(name="Checkouts:", value=f"{mint.checkouts}")
     return mint_info_embed
 

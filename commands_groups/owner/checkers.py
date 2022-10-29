@@ -2,8 +2,8 @@ import discord
 from discord import app_commands
 
 from additions import embeds
-from additions.all_data import submitted_transactions
 from additions.checkers import owner_checker
+from functions import sql_commands
 from functions.blockchain import get_transaction_hash_from_string, is_hash_length_correct
 
 
@@ -16,9 +16,8 @@ class OwnerCheckers(app_commands.Group):
         transaction_hash = get_transaction_hash_from_string(transaction_hash)
         if not is_hash_length_correct(transaction_hash):
             await interaction.response.send_message("Wrong input.", ephemeral=True)
-        for tx in submitted_transactions:
-            if tx.hash == transaction_hash:
-                await interaction.response.send_message(embed=embeds.transaction_info(tx))
-                break
+        if sql_commands.check_exist.transaction(transaction_hash):
+            tx = sql_commands.get.transaction(transaction_hash)
+            await interaction.response.send_message(embed=embeds.transaction_info(tx))
         else:
             await interaction.response.send_message("Transaction not found")
