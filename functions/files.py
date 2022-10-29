@@ -1,47 +1,11 @@
 import asyncio
 import csv
-import json
 import os
 
 import discord
 
-from additions.all_data import config, backup_data
-from classes.blockchain import Transaction
-from classes.classes import Mint, ACOMember
+from additions.all_data import config, sql_client
 from functions.encryption import encrypt_string
-
-
-def save_json(arr: list[Mint | ACOMember | Transaction], filename: str) -> None:
-    with open(os.path.join("data", filename), "w", encoding="utf-8") as file:
-        file.write(encrypt_string(json.dumps(get_list_for_backup(arr), sort_keys=True)))
-
-
-def get_list_for_backup(arr: list[Mint | ACOMember | Transaction]) -> list[dict]:
-    return [a.get_as_dict() for a in arr]
-
-
-async def auto_backup(client: discord.Client) -> None:
-    while not client.is_closed():
-        await asyncio.sleep(config.seconds_between_backups)
-        await create_backup_files(client.get_channel(config.backup_channel_id))
-
-
-async def create_backup_files(channel_to_send: discord.TextChannel) -> None:
-    try:  # phantom error found, trying to figure it out
-        if not os.path.exists("data"):
-            os.mkdir("data")
-
-        files_to_send = []
-        for file in backup_data.files_to_backup:
-            save_json(*file)
-            path_to_file = os.path.join("data", file[1])
-            files_to_send.append(discord.File(path_to_file))
-
-        await channel_to_send.send(files=files_to_send)
-    except TypeError as ex:
-        print(ex)
-        for file in backup_data.files_to_backup:
-            print(get_list_for_backup(file[0]))
 
 
 def delete_mint_files(mint_name: str) -> None:
@@ -51,6 +15,36 @@ def delete_mint_files(mint_name: str) -> None:
     for file_name in os.listdir("wallets_to_send"):
         if file_name[:len(mint_name)] == mint_name:
             os.remove(os.path.join("wallets_to_send", file_name))
+
+
+async def auto_backup(client: discord.Client) -> None:
+    while not client.is_closed():
+        await asyncio.sleep(config.seconds_between_backups)
+        await create_backup(client.get_channel(config.backup_channel_id))
+
+
+async def create_backup(channel_to_send: discord.TextChannel) -> None:
+    if not os.path.exists('./backups'):
+        os.mkdir('backups')
+    data = ""
+    tables = [t[f"Tables_in_{sql_client.db_name}"] for t in sql_client.execute_query("SHOW TABLES")]
+    for table in tables:
+        data += f"DROP TABLE IF EXISTS `{table}`;"
+
+        response = sql_client.execute_query(f"SHOW CREATE TABLE `{table}`;")
+        data += f'\n{response[0]["Create Table"]};\n\n'
+
+        rows = sql_client.select_data(table)
+        for row in rows:
+            keys = ", ".join(row.keys())
+            values = "', '".join([str(row[key]) for key in row])
+            data += f"INSERT INTO `{table}`({keys}) VALUES('{values}');\n"
+        data += "\n\n"
+
+    path_to_file = os.path.join("backups", f"backup.sql")
+    with open(path_to_file, "w", encoding="utf-8") as file:
+        file.write(encrypt_string(data))
+    await channel_to_send.send(file=discord.File(path_to_file))
 
 
 def create_wallets_files(wallets: list[tuple[str, str]], files: dict[str: str]) -> None:
@@ -63,6 +57,7 @@ def create_wallets_files(wallets: list[tuple[str, str]], files: dict[str: str]) 
     ms_file = open(files["minter_suite"], "w")
     ms_writer = csv.writer(ms_file)
     ms_writer.writerow(["Name", "Private Key", "Public Key"])
+
     for wallet_name, wallet_key in wallets:
         urban_file.write(f"{wallet_name}:{wallet_key}\n")
         pepper_writer.writerow([wallet_name, wallet_key])
