@@ -23,13 +23,20 @@ class PropertyModel(BaseModel):
 
 
 class Mint(PropertyModel):
-    id: int
+    id: int = None
     name_: str
     wallets_limit_: int
     timestamp_: int = None
     link_: str = None
     checkouts_: int = 0
     valid_: bool = True
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        from functions import sql_commands
+        if not sql_commands.check_exist.mint(mint_name=self.name):
+            sql_commands.add.mint(self)
+        self.id = sql_commands.get.mint_id_by_name(self.name)
 
     def get_as_embed(self) -> discord.Embed:
         from additions import embeds
@@ -122,6 +129,12 @@ class ACOMember(PropertyModel):
     name_: str
     ticket_id_: int = None
 
+    def __init__(self, **data):
+        super().__init__(**data)
+        from functions import sql_commands
+        if not sql_commands.check_exist.member(self.id):
+            sql_commands.add.member(self)
+
     def update_data(self, **kwargs):
         from functions import sql_commands
         sql_commands.update.mint(self.id, **kwargs)
@@ -161,12 +174,24 @@ class Wallet(PropertyModel):
     mint_id: int
     member_id: int
 
+    def __init__(self, **data):
+        super().__init__(**data)
+        from functions import sql_commands
+        if not sql_commands.check_exist.wallet(self.private_key):
+            sql_commands.add.wallet(self)
+
 
 class Payment(PropertyModel):
     mint_id: int
     mint_name: str
     member_id: int
     amount_of_checkouts_: int
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        from functions import sql_commands
+        if not sql_commands.check_exist.payment(self.mint_id, self.member_id):
+            sql_commands.add.payment(self)
 
     def update_data(self, **kwargs):
         from functions import sql_commands
