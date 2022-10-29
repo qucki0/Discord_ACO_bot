@@ -1,7 +1,4 @@
 import re
-from typing import TypeVar
-
-from classes.classes import Mint, ACOMember
 
 
 def remove_emoji(string: str) -> str:
@@ -26,16 +23,6 @@ def remove_emoji(string: str) -> str:
                                u"\u3030"
                                "]+", flags=re.UNICODE)
     return emoji_pattern.sub(r'', string)
-
-
-T = TypeVar("T", Mint, ACOMember)
-
-
-def get_data_by_id_from_list(id_to_find: int | str, array_to_check: list[T]) -> T | None:
-    id_to_find = str(id_to_find).strip().lower()
-    for element in array_to_check:
-        if str(element.id).lower() == id_to_find:
-            return element
 
 
 def get_wallets_from_string(wallets_str: str) -> list[str]:
