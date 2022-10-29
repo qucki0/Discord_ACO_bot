@@ -33,6 +33,7 @@ class SqlBase:
         self.connection.close()
 
     def execute_query(self, query) -> list[dict[str: int | str]]:
+        self.connection.ping(reconnect=True)
         cursor = self.connection.cursor()
         cursor.execute(query)
         return cursor.fetchall()
@@ -53,7 +54,7 @@ class SqlClient(SqlBase):
             value = data_to_change[key]
             match value:
                 case str():
-                    changes.append(f"{key} = '{value}'")
+                    changes.append(f"LOWER({key}) = LOWER('{value}')")
                 case int() | float():
                     changes.append(f"{key} = {value}")
                 case None:
