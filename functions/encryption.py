@@ -1,7 +1,10 @@
 import random
 
+from functions.other import remove_emoji
+
 
 def encrypt_string(string: str) -> str:
+    string = remove_emoji(string)
     encrypted_line = "BACKUP"
     for i in range(2 * len(string)):
         if i % 2 == 0:
