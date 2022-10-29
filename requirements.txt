@@ -1,3 +1,5 @@
 discord.py==2.0.1
 pydantic==1.10.2
 solana==0.26.0
+PyMySQL==1.0.2
+solders==0.9.3
