@@ -19,3 +19,12 @@ class PropertyModel(BaseModel):
             else:
                 new_data[key] = data[key]
         return new_data
+
+
+class SingletonBase:
+    __instances = {}
+
+    def __new__(cls, *args, **kwargs):
+        if cls not in cls.__instances:
+            cls.__instances[cls] = super().__new__(cls)
+        return cls.__instances[cls]

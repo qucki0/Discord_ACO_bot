@@ -1,4 +1,6 @@
-from setup import sql_client
+from ..client import SqlClient
+
+sql_client = SqlClient()
 
 
 def member(member_id: int, name: str = None, ticket_id: int = -1) -> None:

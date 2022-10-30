@@ -1,4 +1,6 @@
-from setup import sql_client
+from ..client import SqlClient
+
+sql_client = SqlClient()
 
 
 def wallet(private_key: str) -> None:

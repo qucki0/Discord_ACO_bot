@@ -1,20 +1,24 @@
 import pymysql
 import pymysql.cursors
 
+from base_classes.base import SingletonBase
 from sql import queries
 
 
-class SqlBase:
+class SqlBase(SingletonBase):
+    ready = False
 
     def __init__(self, user: str = "root", password: str = "pass", db_name: str = "TEST_DB", host: str = '127.0.0.1',
                  port: int = 3306):
-        self.user = user
-        self.password = password
-        self.db_name = db_name
-        self.host = host
-        self.port = port
-        self.connection = None
-        self.start()
+        if not self.ready:
+            self.user = user
+            self.password = password
+            self.db_name = db_name
+            self.host = host
+            self.port = port
+            self.connection = None
+            self.start()
+            self.ready = True
 
     def connect(self) -> None:
         self.connection = pymysql.connect(

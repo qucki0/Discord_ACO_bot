@@ -1,11 +1,10 @@
-import json
 import time
 
-from solders.signature import Signature
-
-from blockchains.solana.classes import Transaction
-from setup import solana_client, config
 import sql.commands
+from .classes import Transaction
+from .client import SolanaClient
+
+solana_client = SolanaClient()
 
 
 def check_valid_transaction(transaction_hash: str) -> tuple[str, float]:
@@ -15,9 +14,7 @@ def check_valid_transaction(transaction_hash: str) -> tuple[str, float]:
     if is_hash_already_submitted(transaction_hash):
         return "This transaction already exist.", -1
 
-    transaction_signature = Signature.from_string(transaction_hash)
-    transaction_data_response = solana_client.get_transaction(transaction_signature)
-    transaction_data = json.loads(transaction_data_response.to_json())
+    transaction_data = solana_client.get_transaction(transaction_hash)
 
     if not is_transaction_completed(transaction_data):
         return "Transaction isn't confirmed. Wait a bit and try again.", -1
@@ -78,4 +75,5 @@ def is_transaction_sol_transfer(transaction_data: dict) -> bool:
 
 
 def is_payment_address_correct(transaction_data: dict) -> bool:
+    from setup import config
     return config.payment_wallet in transaction_data["result"]["transaction"]["message"]["accountKeys"]

@@ -3,7 +3,9 @@ from base_classes.mint import Mint
 from base_classes.payment import Payment
 from base_classes.wallet import Wallet
 from blockchains.solana.classes import Transaction
-from setup import sql_client
+from ..client import SqlClient
+
+sql_client = SqlClient()
 
 
 def member(member_to_add: Member) -> None:
