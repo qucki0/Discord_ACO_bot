@@ -5,7 +5,7 @@ import sql.commands
 from base_classes.member import get_member_by_user
 from my_discord import embeds
 from my_discord.autocomplete import unpaid_release_ids_autocomplete
-from my_discord.classes import SubmitTransactionView
+from my_discord.views import SubmitTransactionView
 from setup import config
 
 __all__ = ["Payments"]

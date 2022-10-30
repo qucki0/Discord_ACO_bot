@@ -3,8 +3,8 @@ from discord import app_commands
 
 from base_classes.payment import send_notifications
 from my_discord.checkers import owner_checker
-from my_discord.classes import CreateTicketView
 from my_discord.embeds import tickets_menu
+from my_discord.views import CreateTicketView
 from setup import config
 
 __all__ = ["Owner"]

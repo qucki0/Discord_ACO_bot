@@ -1,1 +1,1 @@
-from . import commands, autocomplete, checkers, client, classes, embeds
+from . import commands, autocomplete, checkers, client, views, embeds

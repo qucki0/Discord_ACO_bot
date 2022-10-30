@@ -3,7 +3,7 @@ from discord import app_commands
 
 import sql.commands
 from base_classes.mint import check_mint_exist
-from my_discord.classes import RequestMintView
+from my_discord.views import RequestMintView
 from setup import config
 
 __all__ = ["Mints"]

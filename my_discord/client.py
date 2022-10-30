@@ -1,13 +1,13 @@
 import discord
 from discord.ext import commands
 
+from base_classes.payment import auto_send_notifications
+from my_discord.views import CreateTicketView, TicketView
 from setup import config
-from my_discord.classes import CreateTicketView, TicketView
+from utilities.files import auto_backup
 from .commands.admin import *
 from .commands.member import *
 from .commands.owner import *
-from base_classes.payment import auto_send_notifications
-from utilities.files import auto_backup
 
 
 class DiscordClient(commands.Bot):
