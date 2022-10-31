@@ -8,4 +8,5 @@ sql_client = SqlClient(user=config.sql_data.user,
                        db_name=config.sql_data.db_name,
                        host=config.sql_data.host,
                        port=config.sql_data.port)
+sql_client.start()
 solana_client = SolanaClient(config.rpc_link)

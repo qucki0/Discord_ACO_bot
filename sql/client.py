@@ -17,8 +17,6 @@ class SqlBase(SingletonBase):
             self.host = host
             self.port = port
             self.connection = None
-            self.start()
-            self.ready = True
 
     def connect(self) -> None:
         self.connection = pymysql.connect(
@@ -32,6 +30,7 @@ class SqlBase(SingletonBase):
 
     def start(self) -> None:
         self.connect()
+        self.ready = True
 
     def stop(self) -> None:
         self.connection.close()
