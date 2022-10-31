@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+
 import sql.commands
 
 
@@ -12,3 +13,13 @@ class Transaction(BaseModel):
         super().__init__(**data)
         if not sql.commands.check_exist.transaction(self.hash):
             sql.commands.add.transaction(self)
+
+
+def is_transaction_exist(tx_hash: str) -> bool:
+    return sql.commands.check_exist.transaction(tx_hash)
+
+
+def get_transaction(tx_hash: str) -> Transaction | None:
+    if not is_transaction_exist(tx_hash):
+        return None
+    return get_transaction(tx_hash)

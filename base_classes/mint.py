@@ -1,10 +1,10 @@
 import discord
 
+import sql.commands
 from base_classes.base import PropertyModel
 from base_classes.wallet import Wallet
 from blockchains.solana.functions import is_hash_length_correct
 from setup import config
-import sql.commands
 from utilities.strings import get_wallets_from_string
 
 
@@ -111,7 +111,7 @@ class Mint(PropertyModel):
 
 async def add_mint_to_mints_list(interaction: discord.Interaction, release_name: str, link: str, timestamp: int,
                                  wallets_limit: int = 10) -> None:
-    if check_mint_exist(release_name):
+    if is_mint_exist(mint_name=release_name):
         await interaction.response.send_message(f"{release_name} already exist!", ephemeral=True)
     else:
         mint = Mint(name=release_name, link=link, timestamp=timestamp, wallets_limit=wallets_limit)
@@ -119,11 +119,13 @@ async def add_mint_to_mints_list(interaction: discord.Interaction, release_name:
         await interaction.response.send_message(f"Added `{release_name}` to drop list!", ephemeral=True)
 
 
-def check_mint_exist(release_name: str) -> bool:
-    return sql.commands.check_exist.mint(mint_name=release_name)
+def is_mint_exist(mint_id=None, mint_name=None) -> bool:
+    return sql.commands.check_exist.mint(mint_id=mint_id, mint_name=mint_name)
 
 
 def get_mint_by_name(release_name: str) -> Mint | None:
+    if not is_mint_exist(release_name):
+        return None
     return sql.commands.get.mint(mint_name=release_name)
 
 
@@ -167,3 +169,19 @@ def delete_wallets_from_mint(wallets_to_delete: str, mint: Mint, member_id: int)
             deleted_wallets += 1
     mint.wallets_limit += deleted_wallets
     return deleted_wallets
+
+
+def get_all_mints() -> list[Mint]:
+    return sql.commands.get.all_mints()
+
+
+def get_wallets_for_mint(mint_data: int | str) -> list[Wallet]:
+    return sql.commands.get.wallets_for_mint(mint_data)
+
+
+def get_actual_mints() -> list[Mint]:
+    return sql.commands.get.actual_mints()
+
+
+def get_member_wallets_for_mint(member_id: int, mint_id: int) -> list[Wallet]:
+    return sql.commands.get.member_wallets_for_mint(member_id, mint_id)

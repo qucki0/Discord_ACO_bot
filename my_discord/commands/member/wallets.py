@@ -1,9 +1,9 @@
 import discord
 from discord import app_commands
 
-import sql.commands
 from base_classes.member import add_member
-from base_classes.mint import get_mint_by_name, add_wallets_to_mint, delete_wallets_from_mint
+from base_classes.mint import get_mint_by_name, add_wallets_to_mint, delete_wallets_from_mint, \
+    get_member_wallets_for_mint
 from my_discord.autocomplete import release_id_autocomplete
 from utilities.strings import get_wallets_from_string
 
@@ -61,7 +61,7 @@ class Wallets(app_commands.Group):
         member_name = interaction.user.name
 
         messages_to_send = [f"{member_name} wallets for `{mint.name}`:\n```\n"]
-        member_wallets = sql.commands.get.member_wallets_for_mint(member_id, mint.id)
+        member_wallets = get_member_wallets_for_mint(member_id, mint.id)
         if not member_wallets:
             await interaction.edit_original_response(content=messages_to_send[0] + "Nothing\n```\n")
             return
@@ -92,7 +92,7 @@ class Wallets(app_commands.Group):
             return
 
         member_id = interaction.user.id
-        member_wallets = sql.commands.get.member_wallets_for_mint(member_id, mint.id)
+        member_wallets = get_member_wallets_for_mint(member_id, mint.id)
         if not member_wallets:
             await interaction.response.send_message(f"First you need to send wallets!")
             return

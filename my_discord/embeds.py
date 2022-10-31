@@ -1,10 +1,10 @@
 import discord
 
-from setup import config
-from blockchains.solana.classes import Transaction
-from base_classes.mint import Mint
 from base_classes.member import Member
-import sql.commands
+from base_classes.mint import Mint
+from base_classes.payment import get_member_unpaid_payments
+from blockchains.solana.classes import Transaction
+from setup import config
 
 
 def mint_data(mint: Mint) -> discord.Embed:
@@ -24,7 +24,7 @@ def unpaid_successes(member: Member) -> discord.Embed:
         return discord.Embed(title=f"New member unpaid successes", colour=discord.Colour.red(),
                              description="Nothing to see here;)")
     embed = discord.Embed(title=f"{member.name} Unpaid Successes", colour=discord.Colour.red())
-    payments = sql.commands.get.member_unpaid_payments(member.id)
+    payments = get_member_unpaid_payments(member.id)
     for i, payment in enumerate(payments):
         embed.add_field(name=f"{payment.mint_name}:", value=payment.amount_of_checkouts, inline=i % 4 != 3)
     return embed

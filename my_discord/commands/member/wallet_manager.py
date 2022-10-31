@@ -4,7 +4,7 @@ import time
 import discord
 from discord import app_commands
 
-from base_classes.member import get_member_name_by_id
+from base_classes.member import get_member_by_user
 from my_discord import embeds
 
 __all__ = ["WalletManager"]
@@ -24,6 +24,6 @@ class WalletManager(app_commands.Group):
         week = 7 * 24 * 60 * 60
         while exp_timestamp < current_timestamp:
             exp_timestamp += week
-        name = get_member_name_by_id(interaction.user.id).lower()
+        name = get_member_by_user(interaction.user).name.lower()
         key = hashlib.sha256(f"{name}{exp_timestamp}".encode("utf8")).hexdigest()
         await interaction.response.send_message(embed=embeds.wallet_manager_login_data(name, key, exp_timestamp))

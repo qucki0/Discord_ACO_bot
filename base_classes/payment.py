@@ -3,12 +3,11 @@ import time
 
 import discord
 
+import sql.commands
 from base_classes.base import PropertyModel
 from base_classes.member import Member
 from base_classes.mint import Mint
-from my_discord.embeds import unpaid_successes
 from setup import config
-import sql.commands
 
 
 class Payment(PropertyModel):
@@ -54,6 +53,7 @@ def add_checkout(member: Member, mint: Mint, amount_to_add: int) -> Payment:
 
 
 async def send_notifications(client: discord.Client) -> None:
+    from my_discord.embeds import unpaid_successes
     response = ""
     payments = sql.commands.get.unpaid_checkouts()
     for payment in payments:
@@ -80,3 +80,17 @@ async def auto_send_notifications(client: discord.Client) -> None:
         time_to_wait = timestamp_to_send - int(time.time())
         await asyncio.sleep(time_to_wait)
         await send_notifications(client)
+
+
+def is_payment_exist(release_name: str, member_id: int) -> bool:
+    return sql.commands.check_exist.payment(release_name, member_id)
+
+
+def get_payment(release_name: str, member_id: int) -> Payment | None:
+    if not is_payment_exist(release_name, member_id):
+        return None
+    return sql.commands.get.payment(release_name, member_id)
+
+
+def get_member_unpaid_payments(member_id: int) -> list[Payment]:
+    return sql.commands.get.member_unpaid_payments(member_id)

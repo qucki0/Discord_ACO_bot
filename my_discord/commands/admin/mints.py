@@ -1,10 +1,9 @@
 from typing import Literal
 
 import discord
-from base_classes.mint import add_mint_to_mints_list, get_mint_by_name
 from discord import app_commands
-import sql.commands
 
+from base_classes.mint import add_mint_to_mints_list, get_mint_by_name, get_all_mints
 from my_discord.autocomplete import release_id_autocomplete
 from my_discord.checkers import admin_checker
 from setup import config
@@ -61,7 +60,7 @@ class AdminMints(app_commands.Group):
     @app_commands.check(admin_checker)
     async def get_mints_list(self, interaction: discord.Interaction) -> None:
         data_to_send = '```\n'
-        all_mints = sql.commands.get.all_mints()
+        all_mints = get_all_mints()
         for mint in all_mints:
             data_to_send += f"{mint.name}\n"
         data_to_send += "```"
@@ -72,7 +71,7 @@ class AdminMints(app_commands.Group):
     @app_commands.autocomplete(release_name=release_id_autocomplete)
     @app_commands.describe(release_name="Mint name only from /mints get-all")
     async def delete_mint(self, interaction: discord.Interaction, release_name: str) -> None:
-        actual_mints = sql.commands.get.actual_mints()
+        actual_mints = get_all_mints()
         for mint in actual_mints:
             if release_name.lower().strip() == mint.name.lower():
                 delete_mint_files(mint.name)

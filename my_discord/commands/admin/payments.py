@@ -15,14 +15,14 @@ __all__ = ["AdminPayments"]
 class AdminPayments(app_commands.Group):
     @app_commands.command(name="add-success", description="ADMIN COMMAND Add success to chosen release for chosen user")
     @app_commands.check(admin_checker)
-    @app_commands.autocomplete(release_id=all_releases_autocomplete)
-    @app_commands.describe(release_id="Mint name from /admin-mints get-all-mints-list or /mints get-all",
+    @app_commands.autocomplete(release_name=all_releases_autocomplete)
+    @app_commands.describe(release_name="Mint name from /admin-mints get-all-mints-list or /mints get-all",
                            amount="amount of checkouts")
-    async def add_success(self, interaction: discord.Interaction, release_id: str, amount: int,
+    async def add_success(self, interaction: discord.Interaction, release_name: str, amount: int,
                           user: discord.Member) -> None:
-        mint = get_mint_by_name(release_id)
+        mint = get_mint_by_name(release_name)
         if mint is None:
-            await interaction.response.send_message(f"There are no releases named as {release_id}")
+            await interaction.response.send_message(f"There are no releases named as {release_name}")
             return
 
         member = get_member_by_user(user)
@@ -31,7 +31,7 @@ class AdminPayments(app_commands.Group):
         await interaction.response.send_message(f"Added {amount} checkouts", ephemeral=True)
         if member.ticket_id is not None:
             await interaction.client.get_channel(member.ticket_id).send(
-                embed=embeds.success(user.name, release_id, payment.amount_of_checkouts))
+                embed=embeds.success(user.name, release_name, payment.amount_of_checkouts))
 
     @app_commands.command(name="check-payments", description="Command to check your unpaid successes")
     @app_commands.check(admin_checker)
