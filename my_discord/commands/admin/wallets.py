@@ -5,7 +5,8 @@ import discord
 from discord import app_commands
 
 from base_classes.member import get_member_by_id
-from base_classes.mint import is_mint_exist, get_wallets_for_mint
+from base_classes.mint import is_mint_exist
+from base_classes.wallet import get_wallets_for_mint
 from my_discord.autocomplete import release_id_autocomplete
 from my_discord.checkers import admin_checker
 from utilities.files import create_wallets_files

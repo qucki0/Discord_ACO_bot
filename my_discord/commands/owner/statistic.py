@@ -1,7 +1,8 @@
 import discord
 from discord import app_commands
 
-from base_classes.mint import get_mint_by_name, get_unpaid_mints
+from base_classes.mint import get_mint_by_name
+from base_classes.payment import get_unpaid_mints
 from my_discord.autocomplete import all_releases_autocomplete
 from my_discord.checkers import owner_checker
 from my_discord.embeds import mint_info
