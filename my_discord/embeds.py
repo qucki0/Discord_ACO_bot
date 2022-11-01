@@ -40,9 +40,7 @@ def help_embeds() -> tuple[discord.Embed, discord.Embed, discord.Embed, discord.
                                 "\n*mint_time:* **«Таймстамп минта»** *(необязательно)*")
     wallets_embed = discord.Embed(title="/wallets", colour=discord.Colour.red())
     wallets_embed.add_field(name="**/wallets send** - отправить кошельки на минт.",
-                            value="*release_name:* **«Название релиза»** *(название из /mints get-all)*\n"
-                                  "*wallets:* **«ключ1, ключ2, ключ3»**"
-                                  " *(приватные ключи кошельков через запятую)* ")
+                            value="*release_name:* **«Название релиза»** *(название из /mints get-all)*")
     wallets_embed.add_field(name="**/wallets check** - посмотреть список добавленных кошельков.",
                             value="*release_name:* **«Название релиза»**")
     wallets_embed.add_field(name="/wallets delete - удаление добавленных кошельков.",
