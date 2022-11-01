@@ -1,10 +1,11 @@
 import discord
 
-from base_classes.member import Member
-from base_classes.member import check_admin, get_member_by_user
-from base_classes.mint import add_mint_to_mints_list
+from base_classes.member import check_admin, get_member_by_user, Member
+from base_classes.mint import add_mint_to_mints_list, Mint
+from base_classes.wallet import add_wallets_to_mint
 from blockchains.solana.functions import submit_transaction, get_transaction_hash_from_string
 from my_discord import embeds
+from utilities.strings import get_wallets_from_string
 
 
 class SubmitTransactionView(discord.ui.View):
@@ -156,3 +157,55 @@ class TicketView(discord.ui.View):
     @discord.ui.button(label="Help", style=discord.ButtonStyle.blurple, custom_id="get_help")
     async def get_help(self, help_interaction: discord.Interaction, button: discord.ui.Button):
         await help_interaction.response.send_message(embeds=embeds.help_embeds())
+
+
+class SendWalletsView(discord.ui.View):
+    def __init__(self, original_interaction: discord.Interaction, member_id: int, mint: Mint) -> None:
+        self.original_interaction = original_interaction
+        self.member_id = member_id
+        self.mint = mint
+        super().__init__(timeout=600)
+
+    @discord.ui.button(label="Send wallets", style=discord.ButtonStyle.green)
+    async def send_wallets(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        send_wallets_modal = SendWalletsModal()
+        await interaction.response.send_modal(send_wallets_modal)
+        await send_wallets_modal.wait()
+
+        wallets_str = send_wallets_modal.wallets_str
+        wallets = get_wallets_from_string(wallets_str)
+
+        if not len(wallets):
+            await interaction.response.send_message("Please input wallets keys")
+            return
+
+        if self.mint.wallets_limit < len(wallets):
+            await interaction.response.send_message(
+                f"There are only {self.mint.wallets_limit} spots left for `{self.mint.id}`")
+            return
+        response = add_wallets_to_mint(wallets, self.mint, self.member_id)
+        self.disable_buttons()
+        await send_wallets_modal.interaction.response.send_message(response)
+        await self.original_interaction.edit_original_response(view=self)
+
+    async def on_timeout(self) -> None:
+        self.disable_buttons()
+        await self.original_interaction.edit_original_response(
+            content="**EXPIRED, TRY AGAIN**",
+            view=self
+        )
+
+    def disable_buttons(self) -> None:
+        for button in self.children:
+            button.disabled = True
+
+
+class SendWalletsModal(discord.ui.Modal, title='Submit transaction'):
+    wallets_str = discord.ui.TextInput(label='Your wallets private keys separated by spaces',
+                                       placeholder="key1 key2 key3 ...")
+    interaction = None
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        self.interaction = interaction
+        self.wallets_str = str(self.wallets_str)
+        self.stop()

@@ -2,10 +2,10 @@ import discord
 from discord import app_commands
 
 from base_classes.member import add_member
-from base_classes.mint import get_mint_by_name, add_wallets_to_mint, delete_wallets_from_mint, \
-    get_member_wallets_for_mint
+from base_classes.mint import get_mint_by_name
+from base_classes.wallet import delete_wallets_from_mint, get_member_wallets_for_mint
 from my_discord.autocomplete import release_id_autocomplete
-from utilities.strings import get_wallets_from_string
+from my_discord.views import SendWalletsView
 
 __all__ = ["Wallets"]
 
@@ -14,37 +14,18 @@ __all__ = ["Wallets"]
 class Wallets(app_commands.Group):
     @app_commands.command(name="send", description="Send wallets separated by spaces for chosen release")
     @app_commands.autocomplete(release_name=release_id_autocomplete)
-    @app_commands.describe(release_name="Release name from /mints get-all",
-                           wallets_str="Your wallets private keys separated by spaces")
-    @discord.app_commands.rename(release_name="release_name", wallets_str="private_keys")
-    async def send_wallets(self, interaction: discord.Interaction, release_name: str, wallets_str: str) -> None:
+    @app_commands.describe(release_name="Release name from /mints get-all")
+    @discord.app_commands.rename(release_name="release_name")
+    async def send_wallets(self, interaction: discord.Interaction, release_name: str) -> None:
         member_id = interaction.user.id
         add_member(interaction.user)
-        wallets = get_wallets_from_string(wallets_str)
-
-        if not len(wallets):
-            await interaction.response.send_message("Please input wallets keys")
-            return
 
         mint = get_mint_by_name(release_name)
         if mint is None:
-            await interaction.response.send_message(f"There are no releases named as {release_name}")
+            await interaction.response.send_message(f"There are no releases named as `{release_name}`")
             return
-
-        if mint.wallets_limit < len(wallets):
-            await interaction.response.send_message(f"There are only {mint.wallets_limit} spots left for {mint.id}")
-            return
-
-        not_private_keys, already_exist_keys, added_wallets = add_wallets_to_mint(wallets, mint, member_id)
-
-        response_message = f"Successfully sent {added_wallets} wallets. \n"
-        if already_exist_keys:
-            already_exist_string = '\n'.join(already_exist_keys)
-            response_message += f"{len(already_exist_keys)} wallets already exist:\n```\n{already_exist_string}\n```\n"
-        if not_private_keys:
-            not_keys_string = '\n'.join(not_private_keys)
-            response_message += f"Not private keys:\n```\n{not_keys_string}\n```"
-        await interaction.response.send_message(response_message)
+        view = SendWalletsView(interaction, member_id, mint)
+        await interaction.response.send_message(f"Send your wallets for `{mint.name}` using button below:", view=view)
 
     @app_commands.command(name="check", description="Check the wallets that you sent")
     @app_commands.autocomplete(release_name=release_id_autocomplete)
