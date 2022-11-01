@@ -2,10 +2,7 @@ import discord
 
 import sql.commands
 from base_classes.base import PropertyModel
-from base_classes.wallet import Wallet
-from blockchains.solana.functions import is_hash_length_correct
 from setup import config
-from utilities.strings import get_wallets_from_string
 
 
 class Mint(PropertyModel):
@@ -21,7 +18,7 @@ class Mint(PropertyModel):
         super().__init__(**data)
 
         if not sql.commands.check_exist.mint(mint_name=self.name):
-            sql.commands.add.mint(self)
+            sql.commands.add.mint({key: self.dict()[key] for key in self.dict() if key != "id"})
         self.id = sql.commands.get.mint_id_by_name(self.name)
 
     def get_as_embed(self) -> discord.Embed:
@@ -124,64 +121,14 @@ def is_mint_exist(mint_id=None, mint_name=None) -> bool:
 
 
 def get_mint_by_name(release_name: str) -> Mint | None:
-    if not is_mint_exist(release_name):
+    if not is_mint_exist(mint_name=release_name):
         return None
-    return sql.commands.get.mint(mint_name=release_name)
-
-
-def get_unpaid_mints() -> dict[str: list[int, int]]:
-    unpaid_checkouts = sql.commands.get.unpaid_checkouts()
-    data = {}
-    for payment in unpaid_checkouts:
-        if payment.mint_name not in data:
-            data[payment.mint_name] = []
-        data[payment.mint_name].append([payment.member_id, payment.amount_of_checkouts])
-    return data
-
-
-def add_wallets_to_mint(wallets_to_add: list[str], mint: Mint, member_id: int) -> tuple[list[str], list[str], int]:
-    not_private_keys = []
-    already_exist_keys = []
-    added_wallets = 0
-    for wallet in wallets_to_add:
-        if not is_hash_length_correct(wallet):
-            not_private_keys.append(wallet)
-            continue
-        if sql.commands.check_exist.wallet(wallet):
-            already_exist_keys.append(wallet)
-            continue
-        Wallet(private_key=wallet, mint_id=mint.id, member_id=member_id)
-        added_wallets += 1
-    mint.wallets_limit -= added_wallets
-    return not_private_keys, already_exist_keys, added_wallets
-
-
-def delete_wallets_from_mint(wallets_to_delete: str, mint: Mint, member_id: int) -> int:
-    deleted_wallets = 0
-    if wallets_to_delete.lower().strip() == "all":
-        wallets_to_delete = [wallet.private_key for wallet in
-                             sql.commands.get.member_wallets_for_mint(member_id, mint.id)]
-    else:
-        wallets_to_delete = get_wallets_from_string(wallets_to_delete)
-    for wallet in wallets_to_delete:
-        if sql.commands.check_exist.wallet(wallet):
-            sql.commands.delete.wallet(wallet)
-            deleted_wallets += 1
-    mint.wallets_limit += deleted_wallets
-    return deleted_wallets
+    return Mint.parse_obj(sql.commands.get.mint(mint_name=release_name))
 
 
 def get_all_mints() -> list[Mint]:
-    return sql.commands.get.all_mints()
-
-
-def get_wallets_for_mint(mint_data: int | str) -> list[Wallet]:
-    return sql.commands.get.wallets_for_mint(mint_data)
+    return [Mint.parse_obj(d) for d in sql.commands.get.all_mints()]
 
 
 def get_actual_mints() -> list[Mint]:
-    return sql.commands.get.actual_mints()
-
-
-def get_member_wallets_for_mint(member_id: int, mint_id: int) -> list[Wallet]:
-    return sql.commands.get.member_wallets_for_mint(member_id, mint_id)
+    return [Mint.parse_obj(d) for d in sql.commands.get.actual_mints()]

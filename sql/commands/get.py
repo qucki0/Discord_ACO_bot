@@ -1,39 +1,34 @@
-from base_classes.member import Member
-from base_classes.mint import Mint
-from base_classes.payment import Payment
-from base_classes.wallet import Wallet
-from blockchains.solana.classes import Transaction
 from ..client import SqlClient
 
 sql_client = SqlClient()
 
 
-def member(member_id: int) -> Member:
+def member(member_id: int) -> dict:
     data = sql_client.select_data("DiscordMembers", condition={"id": member_id})[0]
-    return Member.parse_obj(data)
+    return data
 
 
-def mint(mint_id: int = None, mint_name: str = None) -> Mint:
+def mint(mint_id: int = None, mint_name: str = None) -> dict:
     condition = {}
     if mint_id is not None:
         condition["id"] = mint_id
     if mint_name is not None:
         condition["name"] = mint_name
     data = sql_client.select_data("Mints", condition=condition)[0]
-    return Mint.parse_obj(data)
+    return data
 
 
-def transaction(transaction_hash: str) -> Transaction:
+def transaction(transaction_hash: str) -> dict:
     data = sql_client.select_data("Transactions", condition={"hash": transaction_hash})[0]
-    return Transaction.parse_obj(data)
+    return data
 
 
-def wallet(private_key: str) -> Wallet:
+def wallet(private_key: str) -> dict:
     data = sql_client.select_data("Wallets", condition={"private_key": private_key})[0]
-    return Wallet.parse_obj(data)
+    return data
 
 
-def payment(mint_data: int | str, member_id: int) -> Payment:
+def payment(mint_data: int | str, member_id: int) -> dict:
     mint_id = None
     match mint_data:
         case int():
@@ -44,36 +39,36 @@ def payment(mint_data: int | str, member_id: int) -> Payment:
                                   condition={"p.mint_id": mint_id, "p.member_id": member_id},
                                   join_tables=["Mints as m"],
                                   join_conditions=["p.mint_id = m.id"])[0]
-    return Payment.parse_obj(data)
+    return data
 
 
-def actual_mints() -> list[Mint]:
+def actual_mints() -> list[dict]:
     data = sql_client.select_data("Mints", condition={"valid": 1})
-    return [Mint.parse_obj(d) for d in data]
+    return data
 
 
-def all_mints() -> list[Mint]:
+def all_mints() -> list[dict]:
     data = sql_client.select_data("Mints")
-    return [Mint.parse_obj(d) for d in data]
+    return data
 
 
-def all_transactions() -> list[Transaction]:
+def all_transactions() -> list[dict]:
     data = sql_client.select_data("Transactions")
-    return [Transaction.parse_obj(d) for d in data]
+    return data
 
 
-def member_payments(member_id: int) -> list[Payment]:
+def member_payments(member_id: int) -> list[dict]:
     data = sql_client.select_data("Payments as p", data_to_select=["p.*, m.name as mint_name"],
                                   condition={"p.member_id": member_id}, join_tables=["Mints as m"],
                                   join_conditions=["p.mint_id = m.id"])
-    return [Payment.parse_obj(d) for d in data]
+    return data
 
 
-def member_unpaid_payments(member_id: int) -> list[Payment]:
+def member_unpaid_payments(member_id: int) -> list[dict]:
     data = sql_client.select_data("Payments as p", data_to_select=["p.*, m.name as mint_name"],
                                   condition={"p.member_id": member_id}, join_tables=["Mints as m"],
                                   join_conditions=["p.mint_id = m.id AND p.amount_of_checkouts > 0"])
-    return [Payment.parse_obj(d) for d in data]
+    return data
 
 
 def mint_name_by_id(mint_id: int) -> str:
@@ -86,24 +81,24 @@ def mint_id_by_name(mint_name: str) -> int:
     return data[0]["id"]
 
 
-def unpaid_checkouts() -> list[Payment]:
+def unpaid_checkouts() -> list[dict]:
     data = sql_client.select_data("Payments as p", data_to_select=["p.*, m.name as mint_name"],
                                   join_tables=["Mints as m"],
                                   join_conditions=["p.mint_id = m.id AND p.amount_of_checkouts > 0"])
-    return [Payment.parse_obj(d) for d in data]
+    return data
 
 
-def member_wallets_for_mint(member_id: int, mint_id: int) -> list[Wallet]:
+def member_wallets_for_mint(member_id: int, mint_id: int) -> list[dict]:
     data = sql_client.select_data("Wallets", condition={"member_id": member_id, "mint_id": mint_id})
-    return [Wallet.parse_obj(d) for d in data]
+    return data
 
 
-def all_members() -> list[Member]:
+def all_members() -> list[dict]:
     data = sql_client.select_data("DiscordMembers")
-    return [Member.parse_obj(d) for d in data]
+    return data
 
 
-def wallets_for_mint(mint_data: int | str) -> list[Wallet]:
+def wallets_for_mint(mint_data: int | str) -> list[dict]:
     mint_id = None
     match mint_data:
         case int():
@@ -111,4 +106,4 @@ def wallets_for_mint(mint_data: int | str) -> list[Wallet]:
         case str():
             mint_id = mint_id_by_name(mint_data)
     data = sql_client.select_data("Wallets", condition={"mint_id": mint_id})
-    return [Wallet.parse_obj(d) for d in data]
+    return data

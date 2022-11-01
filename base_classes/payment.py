@@ -19,7 +19,7 @@ class Payment(PropertyModel):
     def __init__(self, **data):
         super().__init__(**data)
         if not sql.commands.check_exist.payment(self.mint_id, self.member_id):
-            sql.commands.add.payment(self)
+            sql.commands.add.payment({key: self.dict()[key] for key in self.dict() if key != "mint_name"})
 
     def update_data(self, **kwargs):
         sql.commands.update.payment(self.mint_id, self.member_id, **kwargs)
@@ -44,7 +44,7 @@ class Payment(PropertyModel):
 
 def add_checkout(member: Member, mint: Mint, amount_to_add: int) -> Payment:
     if sql.commands.check_exist.payment(mint.id, member.id):
-        payment = sql.commands.get.payment(mint.id, member.id)
+        payment = Payment.parse_obj(sql.commands.get.payment(mint.id, member.id))
     else:
         payment = Payment(mint_id=mint.id, mint_name=mint.name, member_id=member.id, amount_of_checkouts=0)
     payment.amount_of_checkouts += amount_to_add
@@ -55,10 +55,10 @@ def add_checkout(member: Member, mint: Mint, amount_to_add: int) -> Payment:
 async def send_notifications(client: discord.Client) -> None:
     from my_discord.embeds import unpaid_successes
     response = ""
-    payments = sql.commands.get.unpaid_checkouts()
+    payments = [Payment.parse_obj(d) for d in sql.commands.get.unpaid_checkouts()]
     for payment in payments:
         content = f"<@{payment.member_id}>\nFriendly reminder to pay for checkouts."
-        member = sql.commands.get.member(payment.member_id)
+        member = Member.parse_obj(sql.commands.get.member(payment.member_id))
         try:
             await client.get_user(member.id).send(content=content, embed=unpaid_successes(member))
         except discord.errors.Forbidden:
@@ -89,8 +89,18 @@ def is_payment_exist(release_name: str, member_id: int) -> bool:
 def get_payment(release_name: str, member_id: int) -> Payment | None:
     if not is_payment_exist(release_name, member_id):
         return None
-    return sql.commands.get.payment(release_name, member_id)
+    return Payment.parse_obj(sql.commands.get.payment(release_name, member_id))
 
 
 def get_member_unpaid_payments(member_id: int) -> list[Payment]:
-    return sql.commands.get.member_unpaid_payments(member_id)
+    return [Payment.parse_obj(d) for d in sql.commands.get.member_unpaid_payments(member_id)]
+
+
+def get_unpaid_mints() -> dict[str: list[int, int]]:
+    unpaid_checkouts = [Payment.parse_obj(d) for d in sql.commands.get.unpaid_checkouts()]
+    data = {}
+    for payment in unpaid_checkouts:
+        if payment.mint_name not in data:
+            data[payment.mint_name] = []
+        data[payment.mint_name].append([payment.member_id, payment.amount_of_checkouts])
+    return data

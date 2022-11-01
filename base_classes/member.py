@@ -1,8 +1,8 @@
 import discord
 
+import sql.commands
 from base_classes.base import PropertyModel
 from setup import config
-import sql.commands
 from utilities.strings import remove_emoji
 
 
@@ -14,7 +14,7 @@ class Member(PropertyModel):
     def __init__(self, **data):
         super().__init__(**data)
         if not sql.commands.check_exist.member(self.id):
-            sql.commands.add.member(self)
+            sql.commands.add.member(self.dict())
 
     def update_data(self, **kwargs):
         sql.commands.update.mint(self.id, **kwargs)
@@ -62,7 +62,7 @@ def check_admin(member_id: int) -> bool:
 
 
 def get_member_by_id(member_id: int) -> Member | None:
-    return sql.commands.get.member(member_id)
+    return Member.parse_obj(sql.commands.get.member(member_id))
 
 
 def get_member_by_user(user: discord.Member) -> Member:

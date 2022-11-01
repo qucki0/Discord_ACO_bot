@@ -12,7 +12,7 @@ class Transaction(BaseModel):
     def __init__(self, **data):
         super().__init__(**data)
         if not sql.commands.check_exist.transaction(self.hash):
-            sql.commands.add.transaction(self)
+            sql.commands.add.transaction(self.dict())
 
 
 def is_transaction_exist(tx_hash: str) -> bool:
