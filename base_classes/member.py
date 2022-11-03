@@ -17,7 +17,7 @@ class Member(PropertyModel):
             sql.commands.add.member(self.dict())
 
     def update_data(self, **kwargs):
-        sql.commands.update.mint(self.id, **kwargs)
+        sql.commands.update.member(self.id, **kwargs)
 
     @property
     def ticket_id(self):
