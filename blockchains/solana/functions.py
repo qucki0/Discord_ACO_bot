@@ -1,7 +1,7 @@
 import time
 
-import sql.commands
-from .classes import Transaction
+from base_classes.payment import get_payment
+from .classes import Transaction, get_all_transactions
 from .client import SolanaClient
 
 solana_client = SolanaClient()
@@ -32,12 +32,12 @@ def check_valid_transaction(transaction_hash: str) -> tuple[str, float]:
     return "Payment successful.", sol_amount
 
 
-def submit_transaction(tx_hash: str, member_id: int, release_data: str | int, checkouts_quantity: int) \
+def submit_transaction(tx_hash: str, member_id: int, release_data: str, checkouts_quantity: int) \
         -> tuple[str, float]:
     tx_hash = get_transaction_hash_from_string(tx_hash)
     status, sol_amount = check_valid_transaction(tx_hash)
     if sol_amount != -1:
-        payment = sql.commands.get.payment(release_data, member_id)
+        payment = get_payment(release_data, member_id)
         Transaction(member_id=member_id, hash=tx_hash, amount=sol_amount, timestamp=int(time.time()))
         payment.amount_of_checkouts = max(0, payment.amount_of_checkouts - checkouts_quantity)
 
@@ -58,7 +58,7 @@ def is_hash_length_correct(some_hash: str) -> bool:
 
 
 def is_hash_already_submitted(transaction_hash: str) -> bool:
-    submitted_transactions = sql.commands.get.all_transactions()
+    submitted_transactions = get_all_transactions()
     return any(tx.hash == transaction_hash for tx in submitted_transactions)
 
 

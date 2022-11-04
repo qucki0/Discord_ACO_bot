@@ -22,4 +22,8 @@ def is_transaction_exist(tx_hash: str) -> bool:
 def get_transaction(tx_hash: str) -> Transaction | None:
     if not is_transaction_exist(tx_hash):
         return None
-    return get_transaction(tx_hash)
+    return Transaction.parse_obj(sql.commands.get.transaction(tx_hash))
+
+
+def get_all_transactions() -> list[Transaction]:
+    return [Transaction.parse_obj(d) for d in sql.commands.get.all_transactions()]
