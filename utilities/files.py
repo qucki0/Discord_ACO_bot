@@ -4,7 +4,6 @@ import os
 
 import discord
 
-from setup import config, sql_client
 from utilities.encryption import encrypt_string
 
 
@@ -18,12 +17,15 @@ def delete_mint_files(mint_name: str) -> None:
 
 
 async def auto_backup(client: discord.Client) -> None:
+    from setup import config
     while not client.is_closed():
         await asyncio.sleep(config.seconds_between_backups)
         await create_backup(client.get_channel(config.backup_channel_id))
 
 
 async def create_backup(channel_to_send: discord.TextChannel) -> None:
+    from sql.client import SqlClient
+    sql_client = SqlClient()
     if not os.path.exists('./backups'):
         os.mkdir('backups')
     data = ""
