@@ -8,7 +8,9 @@ from my_discord.autocomplete import release_id_autocomplete
 from my_discord.checkers import admin_checker
 from setup import config
 from utilities.files import delete_mint_files
+from utilities.logging import get_logger
 
+logger = get_logger(__name__)
 __all__ = ["AdminMints"]
 
 
@@ -79,3 +81,8 @@ class AdminMints(app_commands.Group):
                 await interaction.response.send_message(f"Deleted `{release_name}` from drop list!", ephemeral=True)
                 return
         await interaction.response.send_message(f"There are no releases named as {release_name}", ephemeral=True)
+
+    async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
+        await interaction.response.send_message(
+            "An unexpected error occurred, try again. If that doesn't work, ping the admin")
+        logger.exception(f"{interaction.user} {interaction.user.id} got error \n {error}")

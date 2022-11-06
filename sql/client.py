@@ -3,6 +3,9 @@ import pymysql.cursors
 
 from base_classes.base import SingletonBase
 from sql import queries
+from utilities.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 class SqlBase(SingletonBase):
@@ -19,6 +22,7 @@ class SqlBase(SingletonBase):
             self.connection = None
 
     def connect(self) -> None:
+        logger.debug(f"Connecting to database {self.host}::{self.port}")
         self.connection = pymysql.connect(
             host=self.host,
             port=self.port,
@@ -37,9 +41,12 @@ class SqlBase(SingletonBase):
 
     def execute_query(self, query) -> list[dict[str: int | str]]:
         self.connection.ping(reconnect=True)
+        logger.debug(f"executing query: {query}")
         cursor = self.connection.cursor()
         cursor.execute(query)
-        return cursor.fetchall()
+        data = cursor.fetchall()
+        logger.debug(f"Response: {data}")
+        return data
 
     def execute_query_and_commit(self, query: str) -> None:
         self.execute_query(query)

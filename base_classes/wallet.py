@@ -2,7 +2,10 @@ import sql.commands
 from base_classes.base import PropertyModel
 from base_classes.mint import Mint
 from blockchains.solana.functions import is_hash_length_correct
+from utilities.logging import get_logger
 from utilities.strings import get_wallets_from_string
+
+logger = get_logger(__name__)
 
 
 class Wallet(PropertyModel):
@@ -31,6 +34,7 @@ def add_wallets_to_mint(wallets_to_add: list[str], mint: Mint, member_id: int) -
         Wallet(private_key=wallet, mint_id=mint.id, member_id=member_id)
         added_wallets += 1
     mint.wallets_limit -= added_wallets
+    logger.debug(f"Member {member_id} added {added_wallets} wallets for {mint.name.upper()}")
     response = add_wallets_response(not_private_keys, already_exist_keys, added_wallets)
     return response
 
@@ -57,7 +61,9 @@ def delete_wallets_from_mint(wallets_to_delete: str, mint: Mint, member_id: int)
         if sql.commands.check_exist.wallet(wallet):
             sql.commands.delete.wallet(wallet)
             deleted_wallets += 1
+
     mint.wallets_limit += deleted_wallets
+    logger.debug(f"Member {member_id} deleted {deleted_wallets} wallets for {mint.name.upper()}")
     return deleted_wallets
 
 

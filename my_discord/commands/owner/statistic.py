@@ -6,7 +6,9 @@ from base_classes.payment import get_unpaid_mints
 from my_discord.autocomplete import all_releases_autocomplete
 from my_discord.checkers import owner_checker
 from my_discord.embeds import mint_info
+from utilities.logging import get_logger
 
+logger = get_logger(__name__)
 __all__ = ["OwnerStatistic"]
 
 
@@ -33,3 +35,8 @@ class OwnerStatistic(app_commands.Group):
                 data_to_send += f">  <@{member_id}>: {amount}\n"
             data_to_send += "\n"
         await interaction.response.send_message(data_to_send)
+
+    async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
+        await interaction.response.send_message(
+            "An unexpected error occurred, try again. If that doesn't work, ping the admin")
+        logger.exception(f"{interaction.user} {interaction.user.id} got error \n {error}")

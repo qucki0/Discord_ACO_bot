@@ -38,3 +38,8 @@ class AdminPayments(app_commands.Group):
     async def check_payments(self, interaction: discord.Interaction, user: discord.Member) -> None:
         member = get_member_by_id(user.id)
         await interaction.response.send_message(embed=embeds.unpaid_successes(member))
+
+    async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
+        await interaction.response.send_message(
+            "An unexpected error occurred, try again. If that doesn't work, ping the admin")
+        logger.exception(f"{interaction.user} {interaction.user.id} got error \n {error}")

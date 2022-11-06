@@ -10,7 +10,9 @@ from base_classes.wallet import get_wallets_for_mint
 from my_discord.autocomplete import release_id_autocomplete
 from my_discord.checkers import admin_checker
 from utilities.files import create_wallets_files
+from utilities.logging import get_logger
 
+logger = get_logger(__name__)
 __all__ = ["AdminWallets"]
 
 
@@ -50,3 +52,8 @@ class AdminWallets(app_commands.Group):
         }
         create_wallets_files(wallets, files)
         await interaction.response.send_message(files=[discord.File(files[key]) for key in files])
+
+    async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
+        await interaction.response.send_message(
+            "An unexpected error occurred, try again. If that doesn't work, ping the admin")
+        logger.exception(f"{interaction.user} {interaction.user.id} got error \n {error}")

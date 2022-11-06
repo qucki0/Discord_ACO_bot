@@ -5,7 +5,9 @@ from blockchains.solana.classes import get_transaction
 from blockchains.solana.functions import get_transaction_hash_from_string, is_hash_length_correct
 from my_discord import embeds
 from my_discord.checkers import owner_checker
+from utilities.logging import get_logger
 
+logger = get_logger(__name__)
 __all__ = ["OwnerCheckers"]
 
 
@@ -23,3 +25,8 @@ class OwnerCheckers(app_commands.Group):
             await interaction.response.send_message(embed=embeds.transaction_info(tx))
         else:
             await interaction.response.send_message("Transaction not found")
+
+    async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
+        await interaction.response.send_message(
+            "An unexpected error occurred, try again. If that doesn't work, ping the admin")
+        logger.exception(f"{interaction.user} {interaction.user.id} got error \n {error}")

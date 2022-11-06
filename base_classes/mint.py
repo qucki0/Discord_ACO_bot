@@ -3,6 +3,9 @@ import discord
 import sql.commands
 from base_classes.base import PropertyModel
 from setup import config
+from utilities.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 class Mint(PropertyModel):
@@ -16,10 +19,10 @@ class Mint(PropertyModel):
 
     def __init__(self, **data):
         super().__init__(**data)
-
         if not sql.commands.check_exist.mint(mint_name=self.name):
             sql.commands.add.mint({key: self.dict()[key] for key in self.dict() if key != "id"})
-        self.id = sql.commands.get.mint_id_by_name(self.name)
+        if self.id is None:
+            self.id = sql.commands.get.mint_id_by_name(self.name)
 
     def get_as_embed(self) -> discord.Embed:
         from my_discord import embeds
@@ -110,10 +113,11 @@ async def add_mint_to_mints_list(interaction: discord.Interaction, release_name:
                                  wallets_limit: int = 10) -> None:
     if is_mint_exist(mint_name=release_name):
         await interaction.response.send_message(f"{release_name} already exist!", ephemeral=True)
-    else:
-        mint = Mint(name=release_name, link=link, timestamp=timestamp, wallets_limit=wallets_limit)
-        await interaction.client.get_channel(config.alert_channel_id).send("New mint found", embed=mint.get_as_embed())
-        await interaction.response.send_message(f"Added `{release_name}` to drop list!", ephemeral=True)
+        return
+    logger.debug(f"Adding mint {release_name=}, {link=}, {timestamp=}, {wallets_limit}")
+    mint = Mint(name=release_name, link=link, timestamp=timestamp, wallets_limit=wallets_limit)
+    await interaction.client.get_channel(config.alert_channel_id).send("New mint found", embed=mint.get_as_embed())
+    await interaction.response.send_message(f"Added `{release_name}` to drop list!", ephemeral=True)
 
 
 def is_mint_exist(mint_id=None, mint_name=None) -> bool:

@@ -3,7 +3,10 @@ import discord
 import sql.commands
 from base_classes.base import PropertyModel
 from setup import config
+from utilities.logging import get_logger
 from utilities.strings import remove_emoji
+
+logger = get_logger(__name__)
 
 
 class Member(PropertyModel):
@@ -50,6 +53,7 @@ class Member(PropertyModel):
 
 
 def add_member(member: discord.Member) -> None:
+    logger.debug(f"Adding member {member.id=}, {member.name=}")
     Member(id=member.id, name=member.name)
 
 

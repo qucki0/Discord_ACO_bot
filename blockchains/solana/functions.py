@@ -1,9 +1,10 @@
 import time
 
-from base_classes.payment import get_payment
+from utilities.logging import get_logger
 from .classes import Transaction, get_all_transactions
 from .client import SolanaClient
 
+logger = get_logger(__name__)
 solana_client = SolanaClient()
 
 
@@ -34,11 +35,16 @@ def check_valid_transaction(transaction_hash: str) -> tuple[str, float]:
 
 def submit_transaction(tx_hash: str, member_id: int, release_data: str, checkouts_quantity: int) \
         -> tuple[str, float]:
+    logger.info(
+        f"Member {member_id} trying to submit {tx_hash=} for {release_data.upper()} to pay for {checkouts_quantity=}")
     tx_hash = get_transaction_hash_from_string(tx_hash)
     status, sol_amount = check_valid_transaction(tx_hash)
     if sol_amount != -1:
+        from base_classes.payment import get_payment
         payment = get_payment(release_data, member_id)
         Transaction(member_id=member_id, hash=tx_hash, amount=sol_amount, timestamp=int(time.time()))
+        logger.info(
+            f"Member {member_id} submitted {tx_hash=} for {release_data.upper()} to pay for {checkouts_quantity=}")
         payment.amount_of_checkouts = max(0, payment.amount_of_checkouts - checkouts_quantity)
 
     return status, sol_amount

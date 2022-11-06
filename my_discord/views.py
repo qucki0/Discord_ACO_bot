@@ -5,7 +5,10 @@ from base_classes.mint import add_mint_to_mints_list, Mint
 from base_classes.wallet import add_wallets_to_mint
 from blockchains.solana.functions import submit_transaction, get_transaction_hash_from_string
 from my_discord import embeds
+from utilities.logging import get_logger
 from utilities.strings import get_wallets_from_string
+
+logger = get_logger(__name__)
 
 
 class SubmitTransactionView(discord.ui.View):
@@ -96,6 +99,8 @@ class AddMintModal(discord.ui.Modal, title='Create mint'):
         self.release_name = str(self.release_name)
         if str(self.link) == "":
             self.link = None
+        else:
+            self.link = str(self.link)
         if str(self.timestamp) == "":
             self.timestamp = None
         else:
@@ -130,6 +135,7 @@ class CreateTicketView(discord.ui.View):
                                                                      category=category,
                                                                      reason=f"Ticket for"
                                                                             f" {ticket_interaction.user.mention}")
+        logger.debug(f"Ticket created for {ticket_interaction.user}, {ticket_interaction.user.name}")
         await channel.send(view=TicketView(self.closed_category_id), embed=embeds.ticket())
         await ticket_interaction.response.send_message(f"Ticket created {channel.mention}", ephemeral=True)
         member = get_member_by_user(ticket_interaction.user)
@@ -150,6 +156,7 @@ class TicketView(discord.ui.View):
         await close_interaction.channel.edit(category=closed_category, name=f"closed-{channel_name}",
                                              sync_permissions=True)
         await close_interaction.response.send_message(f"Ticket closed by {close_interaction.user.mention}")
+        logger.debug(f"Ticket closed for {close_interaction.user.id}, {close_interaction.user.name}")
         member = get_member_by_user(close_interaction.user)
         member.ticket_id = None
         self.stop()
@@ -184,9 +191,9 @@ class SendWalletsView(discord.ui.View):
                 f"There are only {self.mint.wallets_limit} spots left for `{self.mint.id}`")
             return
         response = add_wallets_to_mint(wallets, self.mint, self.member_id)
-        self.disable_buttons()
         await send_wallets_modal.interaction.response.send_message(response)
         await self.original_interaction.edit_original_response(view=self)
+        self.disable_buttons()
 
     async def on_timeout(self) -> None:
         self.disable_buttons()

@@ -1,6 +1,10 @@
+import logging
+
 from ..client import SqlClient
 
 sql_client = SqlClient()
+
+logger = logging.getLogger(__name__)
 
 
 def member(member_id: int) -> dict:
@@ -43,7 +47,9 @@ def payment(mint_data: int | str, member_id: int) -> dict:
 
 
 def actual_mints() -> list[dict]:
+    logger.info("trying to get mints data")
     data = sql_client.select_data("Mints", condition={"valid": 1})
+    logger.info("got mints")
     return data
 
 
