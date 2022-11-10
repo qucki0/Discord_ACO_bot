@@ -15,9 +15,28 @@ class Wallet(PropertyModel):
 
     def __init__(self, **data):
         super().__init__(**data)
+        if not is_wallet_exists(self.private_key):
+            create_wallet(self)
 
-        if not sql.commands.check_exist.wallet(self.private_key):
-            sql.commands.add.wallet(self.dict())
+
+def create_wallet(wallet: Wallet) -> None:
+    sql.commands.add.wallet(wallet.dict())
+
+
+def is_wallet_exists(private_key: str) -> bool:
+    return sql.commands.check_exist.wallet(private_key)
+
+
+def delete_wallet(private_key: str) -> None:
+    sql.commands.delete.wallet(private_key)
+
+
+def get_wallets_for_mint(mint_data: int | str) -> list[Wallet]:
+    return [Wallet.parse_obj(d) for d in sql.commands.get.wallets_for_mint(mint_data)]
+
+
+def get_member_wallets_for_mint(member_id: int, mint_id: int) -> list[Wallet]:
+    return [Wallet.parse_obj(d) for d in sql.commands.get.member_wallets_for_mint(member_id, mint_id)]
 
 
 def add_wallets_to_mint(wallets_to_add: list[str], mint: Mint, member_id: int) -> str:
@@ -28,7 +47,7 @@ def add_wallets_to_mint(wallets_to_add: list[str], mint: Mint, member_id: int) -
         if not is_hash_length_correct(wallet):
             not_private_keys.append(wallet)
             continue
-        if sql.commands.check_exist.wallet(wallet):
+        if is_wallet_exists(wallet):
             already_exist_keys.append(wallet)
             continue
         Wallet(private_key=wallet, mint_id=mint.id, member_id=member_id)
@@ -58,18 +77,10 @@ def delete_wallets_from_mint(wallets_to_delete: str, mint: Mint, member_id: int)
     else:
         wallets_to_delete = get_wallets_from_string(wallets_to_delete)
     for wallet in wallets_to_delete:
-        if sql.commands.check_exist.wallet(wallet):
-            sql.commands.delete.wallet(wallet)
+        if is_wallet_exists(wallet):
+            delete_wallet(wallet)
             deleted_wallets += 1
 
     mint.wallets_limit += deleted_wallets
     logger.debug(f"Member {member_id} deleted {deleted_wallets} wallets for {mint.name.upper()}")
     return deleted_wallets
-
-
-def get_wallets_for_mint(mint_data: int | str) -> list[Wallet]:
-    return [Wallet.parse_obj(d) for d in sql.commands.get.wallets_for_mint(mint_data)]
-
-
-def get_member_wallets_for_mint(member_id: int, mint_id: int) -> list[Wallet]:
-    return [Wallet.parse_obj(d) for d in sql.commands.get.member_wallets_for_mint(member_id, mint_id)]

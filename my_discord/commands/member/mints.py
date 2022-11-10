@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 
 from base_classes.mint import is_mint_exist, get_actual_mints
-from my_discord.views import RequestMintView
+from my_discord.views.mints import RequestMintView
 from setup import config
 from utilities.logging import get_logger
 

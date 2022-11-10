@@ -5,7 +5,7 @@ from base_classes.member import get_member_by_user
 from base_classes.payment import get_payment, is_payment_exist
 from my_discord import embeds
 from my_discord.autocomplete import unpaid_release_ids_autocomplete
-from my_discord.views import SubmitTransactionView
+from my_discord.views.transactions import SubmitTransactionView
 from setup import config
 from utilities.logging import get_logger
 

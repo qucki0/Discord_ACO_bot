@@ -3,7 +3,7 @@ import discord
 from base_classes.member import Member
 from base_classes.mint import Mint
 from base_classes.payment import get_member_unpaid_payments
-from blockchains.solana.classes import Transaction
+from base_classes.transaction import Transaction
 from setup import config
 
 

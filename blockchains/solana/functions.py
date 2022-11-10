@@ -1,7 +1,7 @@
 import time
 
+from base_classes.transaction import Transaction, get_all_transactions
 from utilities.logging import get_logger
-from .classes import Transaction, get_all_transactions
 from .client import SolanaClient
 
 logger = get_logger(__name__)
@@ -20,7 +20,7 @@ def check_valid_transaction(transaction_hash: str) -> tuple[str, float]:
     if not is_transaction_completed(transaction_data):
         return "Transaction isn't confirmed. Wait a bit and try again.", -1
     if is_transaction_completed_with_error(transaction_data):
-        print(transaction_data)  # to check what was wrong
+        logger.error(f"Transaction error: {transaction_data}")  # to check what was wrong
         return "Something went wrong. Wait a bit and try again.", -1
     if not is_transaction_sol_transfer(transaction_data):
         return "This transaction isn't a $SOL transfer.", -1

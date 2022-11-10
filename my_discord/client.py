@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 from base_classes.payment import auto_send_notifications
-from my_discord.views import CreateTicketView, TicketView
+from my_discord.views.tickets import CreateTicketView, TicketView
 from setup import config
 from utilities.files import auto_backup
 from utilities.logging import get_logger

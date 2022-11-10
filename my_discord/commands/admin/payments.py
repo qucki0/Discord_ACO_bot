@@ -7,7 +7,9 @@ from base_classes.payment import add_checkout
 from my_discord import embeds
 from my_discord.autocomplete import all_releases_autocomplete
 from my_discord.checkers import admin_checker
+from utilities.logging import get_logger
 
+logger = get_logger(__name__)
 __all__ = ["AdminPayments"]
 
 

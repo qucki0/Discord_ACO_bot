@@ -31,3 +31,20 @@ def get_wallets_from_string(wallets_str: str) -> list[str]:
     for group in wallets_str.split():
         wallets += [wallet.strip() for wallet in group.split(",") if len(wallet.strip()) != 0]
     return wallets
+
+
+def get_sql_str_from_dict(data_to_change: dict[str: int | str], separator: str, lower: bool) -> str:
+    changes = []
+    for key in data_to_change:
+        value = data_to_change[key]
+        match value:
+            case str():
+                if lower:
+                    changes.append(f"LOWER({key}) = LOWER('{value}')")
+                else:
+                    changes.append(f"{key} = '{value}'")
+            case int() | float():
+                changes.append(f"{key} = {value}")
+            case None:
+                changes.append(f"{key} = NULL")
+    return separator.join(changes)

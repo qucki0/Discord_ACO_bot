@@ -11,8 +11,12 @@ class Transaction(BaseModel):
 
     def __init__(self, **data):
         super().__init__(**data)
-        if not sql.commands.check_exist.transaction(self.hash):
-            sql.commands.add.transaction(self.dict())
+        if not is_transaction_exist(self.hash):
+            create_transaction(self)
+
+
+def create_transaction(transaction: Transaction) -> None:
+    sql.commands.add.transaction(transaction.dict())
 
 
 def is_transaction_exist(tx_hash: str) -> bool:

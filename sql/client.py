@@ -4,6 +4,7 @@ import pymysql.cursors
 from base_classes.base import SingletonBase
 from sql import queries
 from utilities.logging import get_logger
+from utilities.strings import get_sql_str_from_dict
 
 logger = get_logger(__name__)
 
@@ -57,22 +58,6 @@ class SqlBase(SingletonBase):
 
 
 class SqlClient(SqlBase):
-    @staticmethod
-    def get_dict_as_str(data_to_change: dict[str: int | str], separator: str, lower: bool) -> str:
-        changes = []
-        for key in data_to_change:
-            value = data_to_change[key]
-            match value:
-                case str():
-                    if lower:
-                        changes.append(f"LOWER({key}) = LOWER('{value}')")
-                    else:
-                        changes.append(f"{key} = '{value}'")
-                case int() | float():
-                    changes.append(f"{key} = {value}")
-                case None:
-                    changes.append(f"{key} = NULL")
-        return separator.join(changes)
 
     def create_tables(self) -> None:
         setup_tables = [queries.create_table_discord_members, queries.create_table_mints,
@@ -98,14 +83,14 @@ class SqlClient(SqlBase):
         self.execute_query_and_commit(query)
 
     def change_data(self, table: str, data_to_change: dict[str: int | str], primary_key: dict[str: int | str]) -> None:
-        data_to_change_str = self.get_dict_as_str(data_to_change, ", ", False)
-        primary_key_str = self.get_dict_as_str(primary_key, " and ", False)
+        data_to_change_str = get_sql_str_from_dict(data_to_change, ", ", False)
+        primary_key_str = get_sql_str_from_dict(primary_key, " and ", False)
         query = queries.change_data.format(table=table, data_to_change=data_to_change_str,
                                            primary_key=primary_key_str)
         self.execute_query_and_commit(query)
 
     def delete_data(self, table: str, primary_key: dict[str: int | str]) -> None:
-        primary_key_str = self.get_dict_as_str(primary_key, " and ", False)
+        primary_key_str = get_sql_str_from_dict(primary_key, " and ", False)
         query = queries.delete_data.format(table=table, primary_key=primary_key_str)
         self.execute_query_and_commit(query)
 
@@ -118,7 +103,7 @@ class SqlClient(SqlBase):
             data_to_select_str = "*"
 
         if condition is not None:
-            condition_str = self.get_dict_as_str(condition, " AND ", True)
+            condition_str = get_sql_str_from_dict(condition, " AND ", True)
         else:
             condition_str = "1"
 

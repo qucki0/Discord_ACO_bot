@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands
 
-from blockchains.solana.classes import get_transaction
+from base_classes.transaction import get_transaction
 from blockchains.solana.functions import get_transaction_hash_from_string, is_hash_length_correct
 from my_discord import embeds
 from my_discord.checkers import owner_checker

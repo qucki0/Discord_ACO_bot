@@ -5,7 +5,7 @@ from base_classes.member import add_member
 from base_classes.mint import get_mint_by_name
 from base_classes.wallet import delete_wallets_from_mint, get_member_wallets_for_mint
 from my_discord.autocomplete import release_id_autocomplete
-from my_discord.views import SendWalletsView
+from my_discord.views.wallets import SendWalletsView
 from utilities.logging import get_logger
 
 logger = get_logger(__name__)
