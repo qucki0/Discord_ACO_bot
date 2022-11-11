@@ -9,16 +9,36 @@ class SqlData(BaseModel):
     port: int
 
 
-class Config(BaseModel):
-    token: str
+class MembersIDs(BaseModel):
     admins: list[int]
     owners: list[int]
-    alert_channel_id: int
-    seconds_between_backups: int
+
+
+class ChannelsIDs(BaseModel):
     backup_channel_id: int
-    wallet_manager_link: str
-    rpc_link: str
-    payment_wallet: str
     closed_category_id: int
     notifications_channel_id: int
+    alert_channel_id: int
+
+
+class IDs(BaseModel):
+    members: MembersIDs
+    channels: ChannelsIDs
+
+
+class Blockchain(BaseModel):
+    payment_wallet: str
+    rpc_link: str
+
+
+class Blockchains(BaseModel):
+    solana: Blockchain
+
+
+class ConfigClass(BaseModel):
+    token: str
+    seconds_between_backups: int
+    ids: IDs
+    blockchains: Blockchains
     sql_data: SqlData
+    wallet_manager_link: str

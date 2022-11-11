@@ -82,4 +82,5 @@ def is_transaction_sol_transfer(transaction_data: dict) -> bool:
 
 def is_payment_address_correct(transaction_data: dict) -> bool:
     from setup import config
-    return config.payment_wallet in transaction_data["result"]["transaction"]["message"]["accountKeys"]
+    return config.blockchains.solana.payment_wallet in transaction_data["result"]["transaction"]["message"][
+        "accountKeys"]

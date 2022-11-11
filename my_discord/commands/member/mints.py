@@ -31,7 +31,7 @@ class Mints(app_commands.Group):
         if await is_mint_exist(mint_name=release_name):
             await interaction.followup.send(f"`{release_name}` already exist!", ephemeral=True)
             return
-        for admin_id in config.admins:
+        for admin_id in config.ids.members.admins:
             admins_to_ping += "<@" + str(admin_id) + "> "
         view = RequestMintView(interaction, release_name)
         await interaction.followup.send(f"{admins_to_ping}, please add `{release_name}`", view=view)

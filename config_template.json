@@ -1,21 +1,31 @@
 {
   "token": "your_token",
-  "admins": [
-    123,
-    234
-  ],
-  "alert_channel_id": 567,
-  "owners": [
-    123,
-    234
-  ],
   "seconds_between_backups": 600,
-  "backup_channel_id": 123,
-  "wallet_manager_link": "download link",
-  "rpc_link": "",
-  "payment_wallet": "",
-  "closed_category_id": 123,
-  "notifications_channel_id": 456,
+  "wallet_manager_link": "link",
+  "ids": {
+    "members": {
+      "admins": [
+        123,
+        456
+      ],
+      "owners": [
+        456,
+        789
+      ]
+    },
+    "channels": {
+      "backup_channel_id": 123,
+      "closed_category_id": 123,
+      "notifications_channel_id": 123,
+      "alert_channel_id": 123
+    }
+  },
+  "blockchains": {
+    "solana": {
+      "payment_wallet": "your_sol_wallet",
+      "rpc_link": "sol_rpc"
+    }
+  },
   "sql_data": {
     "user": "root",
     "password": "password",

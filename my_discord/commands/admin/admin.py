@@ -15,8 +15,8 @@ class Admin(app_commands.Group):
     @app_commands.command(name="backup", description="ADMIN COMMAND just doing backup")
     @app_commands.check(admin_checker)
     async def backup(self, interaction: discord.Interaction) -> None:
-        await create_backup(interaction.client.get_channel(config.backup_channel_id))
-        await interaction.response.send_message(f"Backup successful, check <#{config.backup_channel_id}>")
+        await create_backup(interaction.client.get_channel(config.ids.channels.backup_channel_id))
+        await interaction.response.send_message(f"Backup successful, check <#{config.ids.channels.backup_channel_id}>")
 
     async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
         await interaction.response.send_message(

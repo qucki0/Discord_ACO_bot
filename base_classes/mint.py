@@ -139,5 +139,6 @@ async def add_mint_to_mints_list(interaction: discord.Interaction, release_name:
     mint = await Mint(name=release_name, link=link, timestamp=timestamp, wallets_limit=wallets_limit)
 
     from setup import config
-    await interaction.client.get_channel(config.alert_channel_id).send("New mint found", embed=mint.get_as_embed())
+    await interaction.client.get_channel(config.ids.channels.alert_channel_id).send("New mint found",
+                                                                                    embed=mint.get_as_embed())
     await interaction.response.send_message(f"Added `{release_name}` to drop list!", ephemeral=True)

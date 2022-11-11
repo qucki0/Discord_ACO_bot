@@ -74,11 +74,11 @@ async def get_member_name_by_id(member_id: int) -> str:
 
 
 def is_member_admin(member_id: int) -> bool:
-    return member_id in config.admins
+    return member_id in config.ids.members.admins
 
 
 def is_member_owner(member_id: int) -> bool:
-    return member_id in config.owners
+    return member_id in config.ids.members.owners
 
 
 async def get_member_by_user(user: discord.Member) -> Member:

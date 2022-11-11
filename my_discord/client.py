@@ -25,8 +25,8 @@ class DiscordClient(commands.Bot):
             self.tree.add_command(group())
 
     async def setup_hook(self) -> None:
-        self.add_view(CreateTicketView(config.closed_category_id))
-        self.add_view(TicketView(config.closed_category_id))
+        self.add_view(CreateTicketView(config.ids.channels.closed_category_id))
+        self.add_view(TicketView(config.ids.channels.closed_category_id))
         await self.tree.sync()
         await start_sql_client()
         self.loop.create_task(auto_send_notifications(self))

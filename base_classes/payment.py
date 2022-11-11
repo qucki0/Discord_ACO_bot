@@ -97,7 +97,8 @@ async def send_notifications(client: discord.Client) -> None:
                 logger.info(f"Notification doesnt sent to {member.id=}, {member.name=}")
 
     from setup import config
-    await client.get_channel(config.notifications_channel_id).send(f"Can't reach this members:\n{response}\n")
+    await client.get_channel(config.ids.channels.notifications_channel_id).send(
+        f"Can't reach this members:\n{response}\n")
 
 
 async def auto_send_notifications(client: discord.Client) -> None:

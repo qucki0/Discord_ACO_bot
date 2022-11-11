@@ -53,8 +53,8 @@ class AdminMints(app_commands.Group):
                                                             ephemeral=True)
                     return
                 mint.wallets_limit += amount
-        await interaction.client.get_channel(config.alert_channel_id).send("Something changed, check it!",
-                                                                           embed=mint.get_as_embed())
+        await interaction.client.get_channel(config.ids.channels.alert_channel_id).send("Something changed, check it!",
+                                                                                        embed=mint.get_as_embed())
         await interaction.response.send_message(f"Successfully changed {change_type} to {new_value}",
                                                 ephemeral=True)
 

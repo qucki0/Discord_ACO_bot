@@ -34,7 +34,7 @@ class Payments(app_commands.Group):
         view = SubmitTransactionView(interaction, member, release_name, checkouts_quantity)
         await interaction.followup.send("Please send $SOL to address in message below and click on button",
                                         view=view)
-        view.wallet_message = await interaction.channel.send(config.payment_wallet)
+        view.wallet_message = await interaction.channel.send(config.blockchains.solana.payment_wallet)
 
     @app_commands.command(name="check-unpaid", description="Command to check your unpaid successes")
     async def check_unpaid(self, interaction: discord.Interaction) -> None:
