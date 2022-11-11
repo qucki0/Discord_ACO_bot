@@ -23,7 +23,7 @@ create_table_wallets = """
         `private_key` VARCHAR(255) NOT NULL,
         `mint_id` INT NOT NULL,
         `member_id` BIGINT NOT NULL,
-        PRIMARY KEY (`private_key`),
+        PRIMARY KEY (`private_key`, `mint_id`),
         CONSTRAINT `Wallets_fk0` FOREIGN KEY (`mint_id`) REFERENCES `Mints`(`id`),
         CONSTRAINT `Wallets_fk1` FOREIGN KEY (`member_id`) REFERENCES `DiscordMembers`(`id`)
     );
