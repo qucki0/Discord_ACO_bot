@@ -38,6 +38,9 @@ class Blockchains(BaseModel):
 class ConfigClass(BaseModel):
     token: str
     seconds_between_backups: int
+    base_colour: str
+    footer_name: str
+    footer_icon_url: str
     ids: IDs
     blockchains: Blockchains
     sql_data: SqlData
