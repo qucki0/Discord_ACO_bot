@@ -23,10 +23,10 @@ class AdminWallets(app_commands.Group):
     @app_commands.autocomplete(release_name=release_id_autocomplete)
     @app_commands.describe(release_name="Mint name only from /mints get-all")
     async def get_wallets(self, interaction: discord.Interaction, release_name: str) -> None:
-        if not is_mint_exist(mint_name=release_name):
+        if not await is_mint_exist(mint_name=release_name):
             await interaction.response.send_message(f"There are no releases named as `{release_name}`")
             return
-        mint_wallets = get_wallets_for_mint(release_name)
+        mint_wallets = await get_wallets_for_mint(release_name)
         if not mint_wallets:
             await interaction.response.send_message(f"There are no wallets for `{release_name}`")
             return
@@ -36,7 +36,7 @@ class AdminWallets(app_commands.Group):
         members_info = {}
         for wallet in mint_wallets:
             if wallet.member_id not in members_info:
-                member_name = get_member_by_id(wallet.member_id).name
+                member_name = (await get_member_by_id(wallet.member_id)).name
                 members_info[wallet.member_id] = {"name": member_name, "wallets_count": 0}
             member_name = members_info[wallet.member_id]["name"]
             members_info[wallet.member_id]["wallets_count"] += 1

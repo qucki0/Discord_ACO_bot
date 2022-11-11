@@ -38,7 +38,7 @@ class AdminMints(app_commands.Group):
                                new_value: str) -> None:
         change_type = change_type.strip()
         new_value = new_value.strip()
-        mint = get_mint_by_name(release_name)
+        mint = await get_mint_by_name(release_name)
         if mint is None:
             await interaction.response.send_message(f"There are no releases named as {release_name}")
             return
@@ -62,7 +62,7 @@ class AdminMints(app_commands.Group):
     @app_commands.check(admin_checker)
     async def get_mints_list(self, interaction: discord.Interaction) -> None:
         data_to_send = '```\n'
-        all_mints = get_all_mints()
+        all_mints = await get_all_mints()
         for mint in all_mints:
             data_to_send += f"{mint.name}\n"
         data_to_send += "```"
@@ -73,11 +73,11 @@ class AdminMints(app_commands.Group):
     @app_commands.autocomplete(release_name=release_id_autocomplete)
     @app_commands.describe(release_name="Mint name only from /mints get-all")
     async def delete_mint(self, interaction: discord.Interaction, release_name: str) -> None:
-        actual_mints = get_all_mints()
+        actual_mints = await get_all_mints()
         for mint in actual_mints:
             if release_name.lower().strip() == mint.name.lower():
                 delete_mint_files(mint.name)
-                actual_mints.remove(mint)
+                mint.valid = False
                 await interaction.response.send_message(f"Deleted `{release_name}` from drop list!", ephemeral=True)
                 return
         await interaction.response.send_message(f"There are no releases named as {release_name}", ephemeral=True)

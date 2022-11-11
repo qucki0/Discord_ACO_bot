@@ -23,11 +23,11 @@ class Payments(app_commands.Group):
     async def pay(self, interaction: discord.Interaction, release_name: str, checkouts_quantity: int) -> None:
         await interaction.response.defer()
         member_id = interaction.user.id
-        member = get_member_by_user(interaction.user)
-        if not is_payment_exist(release_name, member_id):
+        member = await get_member_by_user(interaction.user)
+        if not await is_payment_exist(release_name, member_id):
             await interaction.followup.send(f"There are no releases named as {release_name}")
             return
-        payment = get_payment(release_name, member_id)
+        payment = await get_payment(release_name, member_id)
         if checkouts_quantity > payment.amount_of_checkouts or checkouts_quantity <= 0:
             await interaction.followup.send("Wrong checkouts quantity", ephemeral=True)
             return
@@ -39,8 +39,8 @@ class Payments(app_commands.Group):
     @app_commands.command(name="check-unpaid", description="Command to check your unpaid successes")
     async def check_unpaid(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer()
-        member = get_member_by_user(interaction.user)
-        await interaction.followup.send(embed=embeds.unpaid_successes(member))
+        member = await get_member_by_user(interaction.user)
+        await interaction.followup.send(embed=await embeds.unpaid_successes(member))
 
     async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
         await interaction.followup.send(

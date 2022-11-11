@@ -21,9 +21,9 @@ class Wallets(app_commands.Group):
     async def send_wallets(self, interaction: discord.Interaction, release_name: str) -> None:
         await interaction.response.defer()
         member_id = interaction.user.id
-        add_member(interaction.user)
+        await add_member(interaction.user)
 
-        mint = get_mint_by_name(release_name)
+        mint = await get_mint_by_name(release_name)
         if mint is None:
             await interaction.followup.send(content=f"There are no releases named as `{release_name}`")
             return
@@ -37,7 +37,7 @@ class Wallets(app_commands.Group):
     @discord.app_commands.rename(release_name="release_name")
     async def check_wallets(self, interaction: discord.Interaction, release_name: str) -> None:
         await interaction.response.defer()
-        mint = get_mint_by_name(release_name)
+        mint = await get_mint_by_name(release_name)
         if mint is None:
             await interaction.followup.send(content=f"There are no releases named as {release_name}")
             return
@@ -46,7 +46,7 @@ class Wallets(app_commands.Group):
         member_name = interaction.user.name
 
         messages_to_send = [f"{member_name} wallets for `{mint.name}`:\n```\n"]
-        member_wallets = get_member_wallets_for_mint(member_id, mint.id)
+        member_wallets = await get_member_wallets_for_mint(member_id, mint.id)
         if not member_wallets:
             await interaction.followup.send(content=messages_to_send[0] + "Nothing\n```\n")
             return
@@ -72,18 +72,18 @@ class Wallets(app_commands.Group):
     @discord.app_commands.rename(release_name="release_name", wallets="private_keys")
     async def delete_wallets(self, interaction: discord.Interaction, release_name: str, wallets: str) -> None:
         await interaction.response.defer()
-        mint = get_mint_by_name(release_name)
+        mint = await get_mint_by_name(release_name)
         if mint is None:
             await interaction.followup.send(content=f"There are no releases named as {release_name}")
             return
 
         member_id = interaction.user.id
-        member_wallets = get_member_wallets_for_mint(member_id, mint.id)
+        member_wallets = await get_member_wallets_for_mint(member_id, mint.id)
         if not member_wallets:
             await interaction.followup.send(content=f"First you need to send wallets!")
             return
 
-        deleted_wallets = delete_wallets_from_mint(wallets, mint, member_id)
+        deleted_wallets = await delete_wallets_from_mint(wallets, mint, member_id)
         await interaction.followup.send(content=f"Successfully deleted {deleted_wallets} wallets")
 
     async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:

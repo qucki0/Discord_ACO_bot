@@ -15,7 +15,7 @@ class Mints(app_commands.Group):
     @app_commands.command(name="get-all", description="Get actual mints")
     async def get_mints(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer()
-        actual_mints = get_actual_mints()
+        actual_mints = await get_actual_mints()
         embeds_to_send = [mint.get_as_embed() for mint in actual_mints]
         message_to_send = "**Let us know if we lost something. Just use `/mints request` for it!**"
         await interaction.followup.send(message_to_send, embeds=embeds_to_send[:min(10, len(embeds_to_send))])
@@ -28,7 +28,7 @@ class Mints(app_commands.Group):
     async def request_mint(self, interaction: discord.Interaction, release_name: str) -> None:
         await interaction.response.defer()
         admins_to_ping = ""
-        if is_mint_exist(mint_name=release_name):
+        if await is_mint_exist(mint_name=release_name):
             await interaction.followup.send(f"`{release_name}` already exist!", ephemeral=True)
             return
         for admin_id in config.admins:

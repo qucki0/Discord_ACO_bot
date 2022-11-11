@@ -26,13 +26,13 @@ class SubmitTransactionView(discord.ui.View):
         await transaction_modal.wait()
 
         tx_hash = transaction_modal.tx_hash
-        status, sol_amount = submit_transaction(tx_hash, self.member.id, self.release_id, self.checkouts_quantity)
+        status, sol_amount = await submit_transaction(tx_hash, self.member.id, self.release_id, self.checkouts_quantity)
         if sol_amount != -1:
             await self.original_interaction.delete_original_response()
             await self.wallet_message.delete()
             tx_hash = get_transaction_hash_from_string(transaction_modal.tx_hash)
         await transaction_modal.interaction.response.send_message(
-            embeds=embeds.transaction_status(status, sol_amount, self.member, tx_hash))
+            embeds=await embeds.transaction_status(status, sol_amount, self.member, tx_hash))
 
     async def on_timeout(self) -> None:
         for button in self.children:

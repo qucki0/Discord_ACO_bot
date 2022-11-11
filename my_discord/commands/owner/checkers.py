@@ -20,7 +20,7 @@ class OwnerCheckers(app_commands.Group):
         transaction_hash = get_transaction_hash_from_string(transaction_hash)
         if not is_hash_length_correct(transaction_hash):
             await interaction.response.send_message("Wrong input.", ephemeral=True)
-        tx = get_transaction(transaction_hash)
+        tx = await get_transaction(transaction_hash)
         if tx is not None:
             await interaction.response.send_message(embed=embeds.transaction_info(tx))
         else:

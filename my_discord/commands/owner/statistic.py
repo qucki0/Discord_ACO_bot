@@ -18,7 +18,7 @@ class OwnerStatistic(app_commands.Group):
     @app_commands.describe(release_name="Release name")
     @app_commands.autocomplete(release_name=all_releases_autocomplete)
     async def mint_statistic(self, interaction: discord.Interaction, release_name: str) -> None:
-        mint = get_mint_by_name(release_name)
+        mint = await get_mint_by_name(release_name)
         if mint is None:
             await interaction.response.send_message("No info about this mint")
             return
@@ -27,7 +27,7 @@ class OwnerStatistic(app_commands.Group):
     @app_commands.command(name="unpaid", description="OWNER COMMAND checking member stats")
     @app_commands.check(owner_checker)
     async def unpaid(self, interaction: discord.Interaction) -> None:
-        data = get_unpaid_mints()
+        data = await get_unpaid_mints()
         data_to_send = ""
         for release in data:
             data_to_send += f"**{release}:**\n"

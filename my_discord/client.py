@@ -3,7 +3,7 @@ from discord.ext import commands
 
 from base_classes.payment import auto_send_notifications
 from my_discord.views.tickets import CreateTicketView, TicketView
-from setup import config
+from setup import config, start_sql_client
 from utilities.files import auto_backup
 from utilities.logging import get_logger
 from .commands.admin import *
@@ -28,6 +28,7 @@ class DiscordClient(commands.Bot):
         self.add_view(CreateTicketView(config.closed_category_id))
         self.add_view(TicketView(config.closed_category_id))
         await self.tree.sync()
+        await start_sql_client()
         self.loop.create_task(auto_send_notifications(self))
         self.loop.create_task(auto_backup(self))
         logger.info(f'{self.user} has connected to Discord!')

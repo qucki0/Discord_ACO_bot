@@ -29,14 +29,14 @@ async def create_backup(channel_to_send: discord.TextChannel) -> None:
     if not os.path.exists('./backups'):
         os.mkdir('backups')
     data = ""
-    tables = [t[f"Tables_in_{sql_client.db_name}"] for t in sql_client.execute_query("SHOW TABLES")]
+    tables = [t[f"Tables_in_{sql_client.db_name}"] for t in (await sql_client.execute_query("SHOW TABLES"))]
     for table in tables:
         data += f"DROP TABLE IF EXISTS `{table}`;"
 
-        response = sql_client.execute_query(f"SHOW CREATE TABLE `{table}`;")
+        response = await sql_client.execute_query(f"SHOW CREATE TABLE `{table}`;")
         data += f'\n{response[0]["Create Table"]};\n\n'
 
-        rows = sql_client.select_data(table)
+        rows = await sql_client.select_data(table)
         for row in rows:
             keys = ", ".join(row.keys())
             values = "', '".join([str(row[key]) for key in row])

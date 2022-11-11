@@ -1,7 +1,7 @@
 import discord
 
 import sql.commands
-from base_classes.base import PropertyModel
+from base_classes.base import PropertyModel, AsyncObject
 from setup import config
 from utilities.logging import get_logger
 from utilities.strings import remove_emoji
@@ -9,15 +9,14 @@ from utilities.strings import remove_emoji
 logger = get_logger(__name__)
 
 
-class Member(PropertyModel):
+class Member(PropertyModel, AsyncObject):
     id: int
     name_: str
     ticket_id_: int = None
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        if not is_member_exists(self.id):
-            create_member(self)
+    async def __ainit__(self, *args, **kwargs):
+        if not await is_member_exists(self.id):
+            await create_member(self)
 
     @property
     def ticket_id(self):
@@ -27,8 +26,8 @@ class Member(PropertyModel):
     def ticket_id(self, value):
         pass
 
-    def set_ticket_id(self, value):
-        update_member(self, ticket_id=value)
+    async def set_ticket_id(self, value):
+        await update_member(self, ticket_id=value)
         self.ticket_id_ = value
 
     @property
@@ -39,8 +38,8 @@ class Member(PropertyModel):
     def name(self, value):
         pass
 
-    def set_name(self, value):
-        update_member(self, name=value)
+    async def set_name(self, value):
+        await update_member(self, name=value)
         self.name_ = value
 
     class Config:
@@ -49,29 +48,29 @@ class Member(PropertyModel):
         property_set_methods = {a: f"set_{a}" for a in attributes_to_change}
 
 
-def create_member(member: Member) -> None:
-    sql.commands.add.member(member.dict())
+async def create_member(member: Member) -> None:
+    await sql.commands.add.member(member.dict())
 
 
-def is_member_exists(member_id: int) -> bool:
-    return sql.commands.check_exist.member(member_id)
+async def is_member_exists(member_id: int) -> bool:
+    return await sql.commands.check_exist.member(member_id)
 
 
-def update_member(member: Member, **kwargs) -> None:
-    sql.commands.update.member(member.id, **kwargs)
+async def update_member(member: Member, **kwargs) -> None:
+    await sql.commands.update.member(member.id, **kwargs)
 
 
-def get_member_by_id(member_id: int) -> Member | None:
-    return Member.parse_obj(sql.commands.get.member(member_id))
+async def get_member_by_id(member_id: int) -> Member | None:
+    return Member.parse_obj(await sql.commands.get.member(member_id))
 
 
-def add_member(member: discord.Member) -> None:
+async def add_member(member: discord.Member) -> None:
     logger.debug(f"Adding member {member.id=}, {member.name=}")
-    Member(id=member.id, name=member.name)
+    await Member(id=member.id, name=member.name)
 
 
-def get_member_name_by_id(member_id: int) -> str:
-    return remove_emoji(get_member_by_id(member_id).name)
+async def get_member_name_by_id(member_id: int) -> str:
+    return remove_emoji((await get_member_by_id(member_id)).name)
 
 
 def is_member_admin(member_id: int) -> bool:
@@ -82,5 +81,5 @@ def is_member_owner(member_id: int) -> bool:
     return member_id in config.owners
 
 
-def get_member_by_user(user: discord.Member) -> Member:
-    return Member(id=user.id, name=user.name)
+async def get_member_by_user(user: discord.Member) -> Member:
+    return await Member(id=user.id, name=user.name)

@@ -6,19 +6,19 @@ from base_classes.payment import get_member_unpaid_payments
 
 
 async def release_id_autocomplete(interaction: discord.Interaction, current: str) -> list[app_commands.Choice]:
-    actual_mints = get_actual_mints()
+    actual_mints = await get_actual_mints()
     mints = [mint.name for mint in actual_mints if current.strip().lower() in mint.name.lower()]
     return get_choices_from_list(mints, current)
 
 
 async def unpaid_release_ids_autocomplete(interaction: discord.Interaction, current: str) -> list[app_commands.Choice]:
-    payments = get_member_unpaid_payments(interaction.user.id)
+    payments = await get_member_unpaid_payments(interaction.user.id)
     mints = [payment.mint_name for payment in payments if payment.amount_of_checkouts > 0]
     return get_choices_from_list(mints, current)
 
 
 async def all_releases_autocomplete(interaction: discord.Interaction, current: str) -> list[app_commands.Choice]:
-    all_mints = get_all_mints()
+    all_mints = await get_all_mints()
     mints = [mint.name for mint in reversed(all_mints) if current.strip().lower() in mint.name.lower()]
     return get_choices_from_list(mints, current)
 

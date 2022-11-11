@@ -25,17 +25,17 @@ class SendWalletsView(discord.ui.View):
         wallets = get_wallets_from_string(wallets_str)
 
         if not len(wallets):
-            await interaction.response.send_message("Please input wallets keys")
+            await interaction.followup.send("Please input wallets keys")
             return
 
         if self.mint.wallets_limit < len(wallets):
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 f"There are only {self.mint.wallets_limit} spots left for `{self.mint.id}`")
             return
-        response = add_wallets_to_mint(wallets, self.mint, self.member_id)
-        await send_wallets_modal.interaction.response.send_message(response)
-        await self.original_interaction.edit_original_response(view=self)
+        response = await add_wallets_to_mint(wallets, self.mint, self.member_id)
+        await send_wallets_modal.interaction.followup.send(response)
         self.disable_buttons()
+        await self.original_interaction.edit_original_response(view=self)
 
     async def on_timeout(self) -> None:
         self.disable_buttons()
@@ -55,6 +55,7 @@ class SendWalletsModal(discord.ui.Modal, title='Submit transaction'):
     interaction = None
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer()
         self.interaction = interaction
         self.wallets_str = str(self.wallets_str)
         self.stop()

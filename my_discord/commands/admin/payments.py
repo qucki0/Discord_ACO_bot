@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands
 
-from base_classes.member import get_member_by_user, get_member_by_id
+from base_classes.member import get_member_by_user
 from base_classes.mint import get_mint_by_name
 from base_classes.payment import add_checkout
 from my_discord import embeds
@@ -22,13 +22,13 @@ class AdminPayments(app_commands.Group):
                            amount="amount of checkouts")
     async def add_success(self, interaction: discord.Interaction, release_name: str, amount: int,
                           user: discord.Member) -> None:
-        mint = get_mint_by_name(release_name)
+        mint = await get_mint_by_name(release_name)
         if mint is None:
             await interaction.response.send_message(f"There are no releases named as {release_name}")
             return
 
-        member = get_member_by_user(user)
-        payment = add_checkout(member, mint, amount)
+        member = await get_member_by_user(user)
+        payment = await add_checkout(member, mint, amount)
 
         await interaction.response.send_message(f"Added {amount} checkouts", ephemeral=True)
         if member.ticket_id is not None:
@@ -38,8 +38,8 @@ class AdminPayments(app_commands.Group):
     @app_commands.command(name="check-payments", description="Command to check your unpaid successes")
     @app_commands.check(admin_checker)
     async def check_payments(self, interaction: discord.Interaction, user: discord.Member) -> None:
-        member = get_member_by_id(user.id)
-        await interaction.response.send_message(embed=embeds.unpaid_successes(member))
+        member = await get_member_by_user(user)
+        await interaction.response.send_message(embed=await embeds.unpaid_successes(member))
 
     async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
         await interaction.response.send_message(

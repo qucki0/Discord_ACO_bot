@@ -19,12 +19,12 @@ def mint_data(mint: Mint) -> discord.Embed:
     return embed
 
 
-def unpaid_successes(member: Member) -> discord.Embed:
+async def unpaid_successes(member: Member) -> discord.Embed:
     if member is None:
         return discord.Embed(title=f"New member unpaid successes", colour=discord.Colour.red(),
                              description="Nothing to see here;)")
     embed = discord.Embed(title=f"{member.name} Unpaid Successes", colour=discord.Colour.red())
-    payments = get_member_unpaid_payments(member.id)
+    payments = await get_member_unpaid_payments(member.id)
     for i, payment in enumerate(payments):
         embed.add_field(name=f"{payment.mint_name}:", value=payment.amount_of_checkouts, inline=i % 4 != 3)
     return embed
@@ -91,14 +91,14 @@ def wallet_manager_login_data(nickname: str, key: str, timestamp: int) -> discor
     return login_data
 
 
-def transaction_status(status: str, sol_amount: float, member: Member, transaction_hash: str) \
+async def transaction_status(status: str, sol_amount: float, member: Member, transaction_hash: str) \
         -> tuple[discord.Embed, ...]:
     url = "https://solscan.io/tx/" + transaction_hash.replace(" ", "_").replace("\n", "__")
     transaction_status_embed = discord.Embed(title="Transaction details", colour=discord.Colour.red(), url=url)
     transaction_status_embed.add_field(name="Status:", value=status, inline=False)
     if sol_amount != -1:
         transaction_status_embed.add_field(name="Amount:", value=sol_amount, inline=False)
-        return transaction_status_embed, unpaid_successes(member)
+        return transaction_status_embed, await unpaid_successes(member)
     return transaction_status_embed,
 
 

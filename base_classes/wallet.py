@@ -1,3 +1,6 @@
+import asyncio
+import enum
+
 import sql.commands
 from base_classes.base import PropertyModel
 from base_classes.mint import Mint
@@ -13,48 +16,66 @@ class Wallet(PropertyModel):
     mint_id: int
     member_id: int
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        if not is_wallet_exists(self.private_key):
-            create_wallet(self)
+
+class AddWalletStatus(enum.Enum):
+    valid = 1
+    not_private_key = 2
+    already_exist = 3
 
 
-def create_wallet(wallet: Wallet) -> None:
-    sql.commands.add.wallet(wallet.dict())
+class DeleteWalletStatus(enum.Enum):
+    deleted = 1
+    not_exist = 2
 
 
-def is_wallet_exists(private_key: str) -> bool:
-    return sql.commands.check_exist.wallet(private_key)
+async def create_wallet(private_key: str, mint_id: int, member_id: int) -> AddWalletStatus:
+    if not is_hash_length_correct(private_key):
+        return AddWalletStatus.not_private_key
+    if await is_wallet_exists(private_key, mint_id):
+        return AddWalletStatus.already_exist
+    await sql.commands.add.wallet({"private_key": private_key, "mint_id": mint_id, "member_id": member_id})
+    return AddWalletStatus.valid
 
 
-def delete_wallet(private_key: str) -> None:
-    sql.commands.delete.wallet(private_key)
+async def is_wallet_exists(private_key: str, mint_id: int) -> bool:
+    return await sql.commands.check_exist.wallet(private_key, mint_id)
 
 
-def get_wallets_for_mint(mint_data: int | str) -> list[Wallet]:
-    return [Wallet.parse_obj(d) for d in sql.commands.get.wallets_for_mint(mint_data)]
+async def delete_wallet(private_key: str, mint_id: int) -> DeleteWalletStatus:
+    if not await is_wallet_exists(private_key, mint_id):
+        return DeleteWalletStatus.not_exist
+    await sql.commands.delete.wallet(private_key, mint_id)
+    return DeleteWalletStatus.deleted
 
 
-def get_member_wallets_for_mint(member_id: int, mint_id: int) -> list[Wallet]:
-    return [Wallet.parse_obj(d) for d in sql.commands.get.member_wallets_for_mint(member_id, mint_id)]
+async def get_wallets_for_mint(mint_data: int | str) -> list[Wallet]:
+    return [Wallet.parse_obj(d) for d in await sql.commands.get.wallets_for_mint(mint_data)]
 
 
-def add_wallets_to_mint(wallets_to_add: list[str], mint: Mint, member_id: int) -> str:
+async def get_member_wallets_for_mint(member_id: int, mint_id: int) -> list[Wallet]:
+    return [Wallet.parse_obj(d) for d in await sql.commands.get.member_wallets_for_mint(member_id, mint_id)]
+
+
+async def add_wallets_to_mint(wallets_to_add: list[str], mint: Mint, member_id: int) -> str:
     not_private_keys = []
     already_exist_keys = []
-    added_wallets = 0
-    for wallet in wallets_to_add:
-        if not is_hash_length_correct(wallet):
-            not_private_keys.append(wallet)
-            continue
-        if is_wallet_exists(wallet):
-            already_exist_keys.append(wallet)
-            continue
-        Wallet(private_key=wallet, mint_id=mint.id, member_id=member_id)
-        added_wallets += 1
-    mint.wallets_limit -= added_wallets
-    logger.debug(f"Member {member_id} added {added_wallets} wallets for {mint.name.upper()}")
-    response = add_wallets_response(not_private_keys, already_exist_keys, added_wallets)
+    added_wallets = []
+
+    tasks = [asyncio.create_task(create_wallet(wallet, mint.id, member_id)) for wallet in wallets_to_add]
+    await asyncio.gather(*tasks)
+
+    for index, status in enumerate(tasks):
+        match status.result():
+            case AddWalletStatus.valid:
+                added_wallets.append(wallets_to_add[index])
+            case AddWalletStatus.not_private_key:
+                not_private_keys.append(wallets_to_add[index])
+            case AddWalletStatus.already_exist:
+                already_exist_keys.append(wallets_to_add[index])
+
+    mint.wallets_limit -= len(added_wallets)
+    logger.debug(f"Member {member_id} added {len(added_wallets)} wallets for {mint.name.upper()}")
+    response = add_wallets_response(not_private_keys, already_exist_keys, len(added_wallets))
     return response
 
 
@@ -69,17 +90,19 @@ def add_wallets_response(not_private_keys: list[str], already_exist_keys: list[s
     return response_message
 
 
-def delete_wallets_from_mint(wallets_to_delete: str, mint: Mint, member_id: int) -> int:
+async def delete_wallets_from_mint(wallets_to_delete: str, mint: Mint, member_id: int) -> int:
     deleted_wallets = 0
     if wallets_to_delete.lower().strip() == "all":
-        wallets = [Wallet.parse_obj(d) for d in sql.commands.get.member_wallets_for_mint(member_id, mint.id)]
+        wallets = await get_member_wallets_for_mint(member_id, mint.id)
         wallets_to_delete = [wallet.private_key for wallet in wallets]
     else:
         wallets_to_delete = get_wallets_from_string(wallets_to_delete)
-    for wallet in wallets_to_delete:
-        if is_wallet_exists(wallet):
-            delete_wallet(wallet)
-            deleted_wallets += 1
+    tasks = [asyncio.create_task(delete_wallet(wallet, mint.id)) for wallet in wallets_to_delete]
+    await asyncio.gather(*tasks)
+    for status in tasks:
+        match status.result():
+            case DeleteWalletStatus.deleted:
+                deleted_wallets += 1
 
     mint.wallets_limit += deleted_wallets
     logger.debug(f"Member {member_id} deleted {deleted_wallets} wallets for {mint.name.upper()}")

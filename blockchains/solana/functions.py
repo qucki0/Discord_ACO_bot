@@ -8,11 +8,11 @@ logger = get_logger(__name__)
 solana_client = SolanaClient()
 
 
-def check_valid_transaction(transaction_hash: str) -> tuple[str, float]:
+async def check_valid_transaction(transaction_hash: str) -> tuple[str, float]:
     transaction_hash = get_transaction_hash_from_string(transaction_hash)
     if not is_hash_length_correct(transaction_hash):
         return "Wrong input.", -1
-    if is_hash_already_submitted(transaction_hash):
+    if await is_hash_already_submitted(transaction_hash):
         return "This transaction already exist.", -1
 
     transaction_data = solana_client.get_transaction(transaction_hash)
@@ -33,16 +33,16 @@ def check_valid_transaction(transaction_hash: str) -> tuple[str, float]:
     return "Payment successful.", sol_amount
 
 
-def submit_transaction(tx_hash: str, member_id: int, release_data: str, checkouts_quantity: int) \
+async def submit_transaction(tx_hash: str, member_id: int, release_data: str, checkouts_quantity: int) \
         -> tuple[str, float]:
     logger.info(
         f"Member {member_id} trying to submit {tx_hash=} for {release_data.upper()} to pay for {checkouts_quantity=}")
     tx_hash = get_transaction_hash_from_string(tx_hash)
-    status, sol_amount = check_valid_transaction(tx_hash)
+    status, sol_amount = await check_valid_transaction(tx_hash)
     if sol_amount != -1:
         from base_classes.payment import get_payment
-        payment = get_payment(release_data, member_id)
-        Transaction(member_id=member_id, hash=tx_hash, amount=sol_amount, timestamp=int(time.time()))
+        payment = await get_payment(release_data, member_id)
+        await Transaction(member_id=member_id, hash=tx_hash, amount=sol_amount, timestamp=int(time.time()))
         logger.info(
             f"Member {member_id} submitted {tx_hash=} for {release_data.upper()} to pay for {checkouts_quantity=}")
         payment.amount_of_checkouts = max(0, payment.amount_of_checkouts - checkouts_quantity)
@@ -63,8 +63,8 @@ def is_hash_length_correct(some_hash: str) -> bool:
     return 88 >= len(some_hash) >= 87
 
 
-def is_hash_already_submitted(transaction_hash: str) -> bool:
-    submitted_transactions = get_all_transactions()
+async def is_hash_already_submitted(transaction_hash: str) -> bool:
+    submitted_transactions = await get_all_transactions()
     return any(tx.hash == transaction_hash for tx in submitted_transactions)
 
 

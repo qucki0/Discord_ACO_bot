@@ -1,33 +1,33 @@
 from pydantic import BaseModel
 
 import sql.commands
+from base_classes.base import AsyncObject
 
 
-class Transaction(BaseModel):
+class Transaction(BaseModel, AsyncObject):
     member_id: int
     hash: str
     amount: float
     timestamp: int
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        if not is_transaction_exist(self.hash):
-            create_transaction(self)
+    async def __ainit__(self, *args, **kwargs):
+        if not await is_transaction_exist(self.hash):
+            await create_transaction(self)
 
 
-def create_transaction(transaction: Transaction) -> None:
-    sql.commands.add.transaction(transaction.dict())
+async def create_transaction(transaction: Transaction) -> None:
+    await sql.commands.add.transaction(transaction.dict())
 
 
-def is_transaction_exist(tx_hash: str) -> bool:
-    return sql.commands.check_exist.transaction(tx_hash)
+async def is_transaction_exist(tx_hash: str) -> bool:
+    return await sql.commands.check_exist.transaction(tx_hash)
 
 
-def get_transaction(tx_hash: str) -> Transaction | None:
-    if not is_transaction_exist(tx_hash):
+async def get_transaction(tx_hash: str) -> Transaction | None:
+    if not await is_transaction_exist(tx_hash):
         return None
-    return Transaction.parse_obj(sql.commands.get.transaction(tx_hash))
+    return Transaction.parse_obj(await sql.commands.get.transaction(tx_hash))
 
 
-def get_all_transactions() -> list[Transaction]:
-    return [Transaction.parse_obj(d) for d in sql.commands.get.all_transactions()]
+async def get_all_transactions() -> list[Transaction]:
+    return [Transaction.parse_obj(d) for d in await sql.commands.get.all_transactions()]

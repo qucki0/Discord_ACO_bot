@@ -26,7 +26,7 @@ class WalletManager(app_commands.Group):
         week = 7 * 24 * 60 * 60
         while exp_timestamp < current_timestamp:
             exp_timestamp += week
-        name = get_member_by_user(interaction.user).name.lower()
+        name = (await get_member_by_user(interaction.user)).name.lower()
         key = hashlib.sha256(f"{name}{exp_timestamp}".encode("utf8")).hexdigest()
         await interaction.response.send_message(embed=embeds.wallet_manager_login_data(name, key, exp_timestamp))
 

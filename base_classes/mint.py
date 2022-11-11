@@ -1,13 +1,13 @@
 import discord
 
 import sql.commands
-from base_classes.base import PropertyModel
+from base_classes.base import PropertyModel, AsyncObject
 from utilities.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-class Mint(PropertyModel):
+class Mint(PropertyModel, AsyncObject):
     id: int = None
     name_: str
     wallets_limit_: int
@@ -16,12 +16,11 @@ class Mint(PropertyModel):
     checkouts_: int = 0
     valid_: bool = True
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        if not is_mint_exist(mint_name=self.name):
-            create_mint(self)
+    async def __ainit__(self, *args, **kwargs):
+        if not await is_mint_exist(mint_name=self.name):
+            await create_mint(self)
         if self.id is None:
-            self.id = get_mint_by_name(self.name).id
+            self.id = (await get_mint_by_name(self.name)).id
 
     def get_as_embed(self) -> discord.Embed:
         from my_discord import embeds
@@ -35,8 +34,8 @@ class Mint(PropertyModel):
     def name(self, value):
         pass
 
-    def set_name(self, value):
-        update_mint(self, name=value)
+    async def set_name(self, value):
+        await update_mint(self, name=value)
         self.name_ = value
 
     @property
@@ -47,8 +46,8 @@ class Mint(PropertyModel):
     def wallets_limit(self, value):
         pass
 
-    def set_wallets_limit(self, value):
-        update_mint(self, wallets_limit=value)
+    async def set_wallets_limit(self, value):
+        await update_mint(self, wallets_limit=value)
         self.wallets_limit_ = value
 
     @property
@@ -59,8 +58,8 @@ class Mint(PropertyModel):
     def timestamp(self, value):
         pass
 
-    def set_timestamp(self, value):
-        update_mint(self, timestamp=value)
+    async def set_timestamp(self, value):
+        await update_mint(self, timestamp=value)
         self.timestamp_ = value
 
     @property
@@ -71,8 +70,8 @@ class Mint(PropertyModel):
     def link(self, value):
         pass
 
-    def set_link(self, value):
-        update_mint(self, link=value)
+    async def set_link(self, value):
+        await update_mint(self, link=value)
         self.link_ = value
 
     @property
@@ -83,8 +82,8 @@ class Mint(PropertyModel):
     def checkouts(self, value):
         pass
 
-    def set_checkouts(self, value):
-        update_mint(self, checkouts=value)
+    async def set_checkouts(self, value):
+        await update_mint(self, checkouts=value)
         self.checkouts_ = value
 
     @property
@@ -95,8 +94,8 @@ class Mint(PropertyModel):
     def valid(self, value):
         pass
 
-    def set_valid(self, value):
-        update_mint(self, valid=value)
+    async def set_valid(self, value):
+        await update_mint(self, valid=value)
         self.valid_ = value
 
     class Config:
@@ -105,39 +104,39 @@ class Mint(PropertyModel):
         property_set_methods = {a: f"set_{a}" for a in attributes_to_change}
 
 
-def create_mint(mint: Mint) -> None:
-    sql.commands.add.mint({key: mint.dict()[key] for key in mint.dict() if key != "id"})
+async def create_mint(mint: Mint) -> None:
+    await sql.commands.add.mint({key: mint.dict()[key] for key in mint.dict() if key != "id"})
 
 
-def update_mint(mint: Mint, **kwargs) -> None:
-    sql.commands.update.mint(mint.id, **kwargs)
+async def update_mint(mint: Mint, **kwargs) -> None:
+    await sql.commands.update.mint(mint.id, **kwargs)
 
 
-def is_mint_exist(mint_id=None, mint_name=None) -> bool:
-    return sql.commands.check_exist.mint(mint_id=mint_id, mint_name=mint_name)
+async def is_mint_exist(mint_id=None, mint_name=None) -> bool:
+    return await sql.commands.check_exist.mint(mint_id=mint_id, mint_name=mint_name)
 
 
-def get_mint_by_name(release_name: str) -> Mint | None:
-    if not is_mint_exist(mint_name=release_name):
+async def get_mint_by_name(release_name: str) -> Mint | None:
+    if not await is_mint_exist(mint_name=release_name):
         return None
-    return Mint.parse_obj(sql.commands.get.mint(mint_name=release_name))
+    return Mint.parse_obj(await sql.commands.get.mint(mint_name=release_name))
 
 
-def get_all_mints() -> list[Mint]:
-    return [Mint.parse_obj(d) for d in sql.commands.get.all_mints()]
+async def get_all_mints() -> list[Mint]:
+    return [Mint.parse_obj(d) for d in await sql.commands.get.all_mints()]
 
 
-def get_actual_mints() -> list[Mint]:
-    return [Mint.parse_obj(d) for d in sql.commands.get.actual_mints()]
+async def get_actual_mints() -> list[Mint]:
+    return [Mint.parse_obj(d) for d in await sql.commands.get.actual_mints()]
 
 
 async def add_mint_to_mints_list(interaction: discord.Interaction, release_name: str, link: str, timestamp: int,
                                  wallets_limit: int = 10) -> None:
-    if is_mint_exist(mint_name=release_name):
+    if await is_mint_exist(mint_name=release_name):
         await interaction.response.send_message(f"{release_name} already exist!", ephemeral=True)
         return
     logger.debug(f"Adding mint {release_name=}, {link=}, {timestamp=}, {wallets_limit}")
-    mint = Mint(name=release_name, link=link, timestamp=timestamp, wallets_limit=wallets_limit)
+    mint = await Mint(name=release_name, link=link, timestamp=timestamp, wallets_limit=wallets_limit)
 
     from setup import config
     await interaction.client.get_channel(config.alert_channel_id).send("New mint found", embed=mint.get_as_embed())

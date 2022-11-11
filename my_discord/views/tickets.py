@@ -35,7 +35,7 @@ class CreateTicketView(discord.ui.View):
         logger.debug(f"Ticket created for {ticket_interaction.user}, {ticket_interaction.user.name}")
         await channel.send(view=TicketView(self.closed_category_id), embed=embeds.ticket())
         await ticket_interaction.response.send_message(f"Ticket created {channel.mention}", ephemeral=True)
-        member = get_member_by_user(ticket_interaction.user)
+        member = await get_member_by_user(ticket_interaction.user)
         member.ticket_id = channel.id
 
 
@@ -54,7 +54,7 @@ class TicketView(discord.ui.View):
                                              sync_permissions=True)
         await close_interaction.response.send_message(f"Ticket closed by {close_interaction.user.mention}")
         logger.debug(f"Ticket closed for {close_interaction.user.id}, {close_interaction.user.name}")
-        member = get_member_by_user(close_interaction.user)
+        member = await get_member_by_user(close_interaction.user)
         member.ticket_id = None
         self.stop()
 
