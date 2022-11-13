@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 
 from base_classes.member import get_member_by_user
-from base_classes.payment import get_payment, is_payment_exist
+from base_classes.payment import get_payment, check_checkouts_to_pay_correct
 from my_discord import embeds
 from my_discord.autocomplete import unpaid_release_ids_autocomplete
 from my_discord.views.transactions import SubmitTransactionView
@@ -24,13 +24,8 @@ class Payments(app_commands.Group):
         await interaction.response.defer()
         member_id = interaction.user.id
         member = await get_member_by_user(interaction.user)
-        if not await is_payment_exist(release_name, member_id):
-            await interaction.followup.send(f"There are no releases named as {release_name}")
-            return
         payment = await get_payment(release_name, member_id)
-        if checkouts_quantity > payment.amount_of_checkouts or checkouts_quantity <= 0:
-            await interaction.followup.send("Wrong checkouts quantity", ephemeral=True)
-            return
+        check_checkouts_to_pay_correct(checkouts_quantity, payment)
         view = SubmitTransactionView(interaction, member, release_name, checkouts_quantity)
         await interaction.followup.send("Please send $SOL to address in message below and click on button",
                                         view=view)
@@ -41,8 +36,3 @@ class Payments(app_commands.Group):
         await interaction.response.defer()
         member = await get_member_by_user(interaction.user)
         await interaction.followup.send(embed=await embeds.unpaid_successes(member))
-
-    async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
-        await interaction.followup.send(
-            "An unexpected error occurred, try again. If that doesn't work, ping the admin")
-        logger.exception(f"{interaction.user} {interaction.user.id} got error \n {error}")

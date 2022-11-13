@@ -39,9 +39,6 @@ class AdminMints(app_commands.Group):
         change_type = change_type.strip()
         new_value = new_value.strip()
         mint = await get_mint_by_name(release_name)
-        if mint is None:
-            await interaction.response.send_message(f"There are no releases named as {release_name}")
-            return
         match change_type:
             case "name" | "link" | "timestamp":
                 mint.__setattr__(change_type, new_value)
@@ -73,16 +70,7 @@ class AdminMints(app_commands.Group):
     @app_commands.autocomplete(release_name=release_id_autocomplete)
     @app_commands.describe(release_name="Mint name only from /mints get-all")
     async def delete_mint(self, interaction: discord.Interaction, release_name: str) -> None:
-        actual_mints = await get_all_mints()
-        for mint in actual_mints:
-            if release_name.lower().strip() == mint.name.lower():
-                delete_mint_files(mint.name)
-                mint.valid = False
-                await interaction.response.send_message(f"Deleted `{release_name}` from drop list!", ephemeral=True)
-                return
-        await interaction.response.send_message(f"There are no releases named as {release_name}", ephemeral=True)
-
-    async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
-        await interaction.response.send_message(
-            "An unexpected error occurred, try again. If that doesn't work, ping the admin")
-        logger.exception(f"{interaction.user} {interaction.user.id} got error \n {error}")
+        mint = await get_mint_by_name(release_name)
+        delete_mint_files(mint.name)
+        mint.valid = False
+        await interaction.response.send_message(f"Deleted `{release_name}` from drop list!", ephemeral=True)

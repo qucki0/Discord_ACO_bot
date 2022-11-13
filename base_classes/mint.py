@@ -3,6 +3,7 @@ import discord
 import sql.commands
 from base_classes.base import PropertyModel, AsyncObject
 from utilities.logging import get_logger
+from .errors import MintNotExist, MintAlreadyExist
 
 logger = get_logger(__name__)
 
@@ -19,7 +20,6 @@ class Mint(PropertyModel, AsyncObject):
     async def __ainit__(self, *args, **kwargs):
         if not await is_mint_exist(mint_name=self.name):
             await create_mint(self)
-        if self.id is None:
             self.id = (await get_mint_by_name(self.name)).id
 
     def get_as_embed(self) -> discord.Embed:
@@ -116,9 +116,13 @@ async def is_mint_exist(mint_id=None, mint_name=None) -> bool:
     return await sql.commands.check_exist.mint(mint_id=mint_id, mint_name=mint_name)
 
 
-async def get_mint_by_name(release_name: str) -> Mint | None:
-    if not await is_mint_exist(mint_name=release_name):
-        return None
+async def check_mint_exist(mint_id=None, mint_name=None) -> None:
+    if not await is_mint_exist(mint_id, mint_name):
+        raise MintNotExist(mint_name)
+
+
+async def get_mint_by_name(release_name: str) -> Mint:
+    await check_mint_exist(mint_name=release_name)
     return Mint.parse_obj(await sql.commands.get.mint(mint_name=release_name))
 
 
@@ -133,8 +137,7 @@ async def get_actual_mints() -> list[Mint]:
 async def add_mint_to_mints_list(interaction: discord.Interaction, release_name: str, link: str, timestamp: int,
                                  wallets_limit: int = 10) -> None:
     if await is_mint_exist(mint_name=release_name):
-        await interaction.response.send_message(f"{release_name} already exist!", ephemeral=True)
-        return
+        raise MintAlreadyExist(release_name)
     logger.debug(f"Adding mint {release_name=}, {link=}, {timestamp=}, {wallets_limit}")
     mint = await Mint(name=release_name, link=link, timestamp=timestamp, wallets_limit=wallets_limit)
 

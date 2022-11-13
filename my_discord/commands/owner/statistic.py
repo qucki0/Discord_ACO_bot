@@ -19,9 +19,6 @@ class OwnerStatistic(app_commands.Group):
     @app_commands.autocomplete(release_name=all_releases_autocomplete)
     async def mint_statistic(self, interaction: discord.Interaction, release_name: str) -> None:
         mint = await get_mint_by_name(release_name)
-        if mint is None:
-            await interaction.response.send_message("No info about this mint")
-            return
         await interaction.response.send_message(embed=mint_info(mint))
 
     @app_commands.command(name="unpaid", description="OWNER COMMAND checking member stats")
@@ -35,8 +32,3 @@ class OwnerStatistic(app_commands.Group):
                 data_to_send += f">  <@{member_id}>: {amount}\n"
             data_to_send += "\n"
         await interaction.response.send_message(data_to_send)
-
-    async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
-        await interaction.response.send_message(
-            "An unexpected error occurred, try again. If that doesn't work, ping the admin")
-        logger.exception(f"{interaction.user} {interaction.user.id} got error \n {error}")

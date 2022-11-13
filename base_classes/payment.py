@@ -8,6 +8,7 @@ from base_classes.base import PropertyModel, AsyncObject
 from base_classes.member import Member, get_member_by_id
 from base_classes.mint import Mint
 from utilities.logging import get_logger
+from .errors import PaymentNotExist, WrongCheckoutsQuantity
 
 logger = get_logger(__name__)
 
@@ -58,8 +59,13 @@ async def get_member_unpaid_payments(member_id: int) -> list[Payment]:
 
 async def get_payment(release_name: str, member_id: int) -> Payment | None:
     if not await is_payment_exist(release_name, member_id):
-        return None
+        raise PaymentNotExist(release_name)
     return Payment.parse_obj(await sql.commands.get.payment(release_name, member_id))
+
+
+def check_checkouts_to_pay_correct(checkouts_quantity: int, payment: Payment) -> None:
+    if checkouts_quantity > payment.amount_of_checkouts or checkouts_quantity <= 0:
+        raise WrongCheckoutsQuantity()
 
 
 async def get_unpaid_checkouts() -> list[Payment]:

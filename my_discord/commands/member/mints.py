@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands
 
-from base_classes.mint import is_mint_exist, get_actual_mints
+from base_classes.mint import check_mint_exist, get_actual_mints
 from my_discord.views.mints import RequestMintView
 from setup import config
 from utilities.logging import get_logger
@@ -28,15 +28,8 @@ class Mints(app_commands.Group):
     async def request_mint(self, interaction: discord.Interaction, release_name: str) -> None:
         await interaction.response.defer()
         admins_to_ping = ""
-        if await is_mint_exist(mint_name=release_name):
-            await interaction.followup.send(f"`{release_name}` already exist!", ephemeral=True)
-            return
+        await check_mint_exist(mint_name=release_name)
         for admin_id in config.ids.members.admins:
             admins_to_ping += "<@" + str(admin_id) + "> "
         view = RequestMintView(interaction, release_name)
         await interaction.followup.send(f"{admins_to_ping}, please add `{release_name}`", view=view)
-
-    async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
-        await interaction.followup.send(
-            "An unexpected error occurred, try again. If that doesn't help, ping the admin")
-        logger.exception(f"{interaction.user} {interaction.user.id} got error \n {error}")

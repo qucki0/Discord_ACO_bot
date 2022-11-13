@@ -5,7 +5,7 @@ import discord
 from discord import app_commands
 
 from base_classes.member import get_member_by_id
-from base_classes.mint import is_mint_exist
+from base_classes.mint import check_mint_exist
 from base_classes.wallet import get_wallets_for_mint
 from my_discord.autocomplete import release_id_autocomplete
 from my_discord.checkers import admin_checker
@@ -23,13 +23,8 @@ class AdminWallets(app_commands.Group):
     @app_commands.autocomplete(release_name=release_id_autocomplete)
     @app_commands.describe(release_name="Mint name only from /mints get-all")
     async def get_wallets(self, interaction: discord.Interaction, release_name: str) -> None:
-        if not await is_mint_exist(mint_name=release_name):
-            await interaction.response.send_message(f"There are no releases named as `{release_name}`")
-            return
+        await check_mint_exist(mint_name=release_name)
         mint_wallets = await get_wallets_for_mint(release_name)
-        if not mint_wallets:
-            await interaction.response.send_message(f"There are no wallets for `{release_name}`")
-            return
         mint_wallets.sort(key=lambda w: w.member_id)
         base_wallets_dir = "wallets_to_send"
         wallets = []
@@ -52,8 +47,3 @@ class AdminWallets(app_commands.Group):
         }
         create_wallets_files(wallets, files)
         await interaction.response.send_message(files=[discord.File(files[key]) for key in files])
-
-    async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
-        await interaction.response.send_message(
-            "An unexpected error occurred, try again. If that doesn't work, ping the admin")
-        logger.exception(f"{interaction.user} {interaction.user.id} got error \n {error}")

@@ -25,8 +25,3 @@ class OwnerCheckers(app_commands.Group):
             await interaction.response.send_message(embed=embeds.transaction_info(tx))
         else:
             await interaction.response.send_message("Transaction not found")
-
-    async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
-        await interaction.response.send_message(
-            "An unexpected error occurred, try again. If that doesn't work, ping the admin")
-        logger.exception(f"{interaction.user} {interaction.user.id} got error \n {error}")

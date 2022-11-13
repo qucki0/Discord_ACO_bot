@@ -23,13 +23,8 @@ class AdminPayments(app_commands.Group):
     async def add_success(self, interaction: discord.Interaction, release_name: str, amount: int,
                           user: discord.Member) -> None:
         mint = await get_mint_by_name(release_name)
-        if mint is None:
-            await interaction.response.send_message(f"There are no releases named as {release_name}")
-            return
-
         member = await get_member_by_user(user)
         payment = await add_checkout(member, mint, amount)
-
         await interaction.response.send_message(f"Added {amount} checkouts", ephemeral=True)
         if member.ticket_id is not None:
             await interaction.client.get_channel(member.ticket_id).send(
@@ -40,8 +35,3 @@ class AdminPayments(app_commands.Group):
     async def check_payments(self, interaction: discord.Interaction, user: discord.Member) -> None:
         member = await get_member_by_user(user)
         await interaction.response.send_message(embed=await embeds.unpaid_successes(member))
-
-    async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
-        await interaction.response.send_message(
-            "An unexpected error occurred, try again. If that doesn't work, ping the admin")
-        logger.exception(f"{interaction.user} {interaction.user.id} got error \n {error}")

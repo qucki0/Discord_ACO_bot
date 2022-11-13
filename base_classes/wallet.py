@@ -7,6 +7,7 @@ from base_classes.mint import Mint
 from blockchains.solana.functions import is_hash_length_correct
 from utilities.logging import get_logger
 from utilities.strings import get_wallets_from_string
+from .errors import WalletsNotExist
 
 logger = get_logger(__name__)
 
@@ -53,7 +54,10 @@ async def get_wallets_for_mint(mint_data: int | str) -> list[Wallet]:
 
 
 async def get_member_wallets_for_mint(member_id: int, mint_id: int) -> list[Wallet]:
-    return [Wallet.parse_obj(d) for d in await sql.commands.get.member_wallets_for_mint(member_id, mint_id)]
+    wallets = [Wallet.parse_obj(d) for d in await sql.commands.get.member_wallets_for_mint(member_id, mint_id)]
+    if not wallets:
+        raise WalletsNotExist()
+    return wallets
 
 
 async def add_wallets_to_mint(wallets_to_add: list[str], mint: Mint, member_id: int) -> str:

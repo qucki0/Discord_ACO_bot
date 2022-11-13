@@ -9,6 +9,7 @@ from utilities.logging import get_logger
 from .commands.admin import *
 from .commands.member import *
 from .commands.owner import *
+from .errors_handlers import AppCommandsErrorsHandler
 
 logger = get_logger(__name__)
 
@@ -20,7 +21,7 @@ class DiscordClient(commands.Bot):
                   Mints, Wallets, Payments, WalletManager,
                   Owner, OwnerCheckers, OwnerStatistic]
         self.tree.add_command(ask_help)
-
+        self.tree.on_error = AppCommandsErrorsHandler.on_error
         for group in groups:
             self.tree.add_command(group())
 

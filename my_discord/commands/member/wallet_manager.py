@@ -29,8 +29,3 @@ class WalletManager(app_commands.Group):
         name = (await get_member_by_user(interaction.user)).name.lower()
         key = hashlib.sha256(f"{name}{exp_timestamp}".encode("utf8")).hexdigest()
         await interaction.response.send_message(embed=embeds.wallet_manager_login_data(name, key, exp_timestamp))
-
-    async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
-        await interaction.response.send_message(
-            "An unexpected error occurred, try again. If that doesn't work, ping the admin")
-        logger.exception(f"{interaction.user} {interaction.user.id} got error \n {error}")
