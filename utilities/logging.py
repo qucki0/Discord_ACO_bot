@@ -17,11 +17,11 @@ if not os.path.exists("./logs/info"):
 if not os.path.exists("./logs/debug"):
     os.mkdir("logs/debug")
 fh_info = logging.handlers.RotatingFileHandler(filename="logs/info/logs.log", maxBytes=1024 * 1024 * 5, backupCount=5,
-                                               encoding="urf-8")
+                                               encoding="utf-8")
 fh_info.setFormatter(log_formatter)
 fh_info.setLevel(logging.INFO)
 fh_debug = logging.handlers.RotatingFileHandler(filename="logs/debug/logs.log", maxBytes=1024 * 1024 * 5, backupCount=5,
-                                                encoding="urf-8")
+                                                encoding="utf-8")
 fh_debug.setFormatter(log_formatter)
 fh_debug.setLevel(logging.DEBUG)
 handlers = [sh, fh_info, fh_debug]
