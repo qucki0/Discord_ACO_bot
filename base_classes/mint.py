@@ -11,7 +11,7 @@ logger = get_logger(__name__)
 class Mint(PropertyModel, AsyncObject):
     id: int = None
     name_: str
-    wallets_limit_: int
+    wallets_limit_: int = 10
     timestamp_: int = None
     link_: str = None
     checkouts_: int = 0
@@ -126,6 +126,11 @@ async def get_mint_by_name(release_name: str) -> Mint:
     return Mint.parse_obj(await sql.commands.get.mint(mint_name=release_name))
 
 
+async def get_mint_by_id(release_id: int) -> Mint:
+    await check_mint_exist(mint_id=release_id)
+    return Mint.parse_obj(await sql.commands.get.mint(mint_id=release_id))
+
+
 async def get_all_mints() -> list[Mint]:
     return [Mint.parse_obj(d) for d in await sql.commands.get.all_mints()]
 
@@ -134,8 +139,8 @@ async def get_actual_mints() -> list[Mint]:
     return [Mint.parse_obj(d) for d in await sql.commands.get.actual_mints()]
 
 
-async def add_mint_to_mints_list(interaction: discord.Interaction, release_name: str, link: str, timestamp: int,
-                                 wallets_limit: int = 10) -> None:
+async def add_mint_to_mints_list(interaction: discord.Interaction, release_name: str, link: str = None,
+                                 timestamp: int = None, wallets_limit: int = 10) -> None:
     if await is_mint_exist(mint_name=release_name):
         raise MintAlreadyExist(release_name)
     logger.debug(f"Adding mint {release_name=}, {link=}, {timestamp=}, {wallets_limit}")

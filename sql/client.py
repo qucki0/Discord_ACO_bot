@@ -58,6 +58,10 @@ class SqlBase(SingletonBase):
         logger.debug(f"Response: {data}")
         return data
 
+    async def execute_queries(self, queries_list: list[str]) -> None:
+        tasks = [asyncio.create_task(self.execute_query(query)) for query in queries_list]
+        await asyncio.gather(*tasks)
+
 
 class SqlClient(SqlBase):
 
@@ -67,6 +71,16 @@ class SqlClient(SqlBase):
                         queries.create_table_transactions]
         for q in setup_tables:
             await self.execute_query(q)
+
+    async def drop_tables(self) -> None:
+        tables = ["Transactions", "Wallets", "Payments", "Mints", "DiscordMembers"]
+        for table in tables:
+            await self.execute_query(queries.drop_table.format(table_name=table))
+
+    async def delete_all_data(self) -> None:
+        tables = ["Transactions", "Wallets", "Payments", "Mints", "DiscordMembers"]
+        delete_queries = [queries.delete_all_data_from_table.format(table_name=table) for table in tables]
+        await self.execute_queries(delete_queries)
 
     async def add_data(self, table: str, data_to_add: dict[str: int | str]):
         keys_as_str = ", ".join([key for key in data_to_add])

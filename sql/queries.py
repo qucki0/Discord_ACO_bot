@@ -49,6 +49,10 @@ create_table_payments = """
         CONSTRAINT `Payments_fk1` FOREIGN KEY (`member_id`) REFERENCES `DiscordMembers`(`id`)
 );"""
 
+drop_table = "DROP TABLE {table_name}"
+
+delete_all_data_from_table = "DELETE FROM {table_name}"
+
 add_data = "INSERT INTO {table_and_columns} values ({values})"
 
 change_data = "UPDATE {table} SET {data_to_change} WHERE {primary_key}"
