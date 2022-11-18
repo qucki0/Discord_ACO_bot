@@ -80,7 +80,8 @@ class SqlClient(SqlBase):
     async def delete_all_data(self) -> None:
         tables = ["Transactions", "Wallets", "Payments", "Mints", "DiscordMembers"]
         delete_queries = [queries.delete_all_data_from_table.format(table_name=table) for table in tables]
-        await self.execute_queries(delete_queries)
+        for query in delete_queries:
+            await self.execute_query(query)
 
     async def add_data(self, table: str, data_to_add: dict[str: int | str]):
         keys_as_str = ", ".join([key for key in data_to_add])
