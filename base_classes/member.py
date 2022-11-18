@@ -2,7 +2,6 @@ import discord
 
 import sql.commands
 from base_classes.base import PropertyModel, AsyncObject
-from setup import config
 from utilities.logging import get_logger
 from utilities.strings import remove_emoji
 
@@ -60,7 +59,7 @@ async def update_member(member: Member, **kwargs) -> None:
     await sql.commands.update.member(member.id, **kwargs)
 
 
-async def get_member_by_id(member_id: int) -> Member | None:
+async def get_member_by_id(member_id: int) -> Member:
     return Member.parse_obj(await sql.commands.get.member(member_id))
 
 
@@ -74,10 +73,12 @@ async def get_member_name_by_id(member_id: int) -> str:
 
 
 def is_member_admin(member_id: int) -> bool:
+    from setup import config
     return member_id in config.ids.members.admins
 
 
 def is_member_owner(member_id: int) -> bool:
+    from setup import config
     return member_id in config.ids.members.owners
 
 
