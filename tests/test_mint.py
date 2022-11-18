@@ -47,7 +47,7 @@ class TestMint:
                                                                    ("link", "https://www.google.com/"), ("link", None),
                                                                    ("valid", False), ("checkouts", 0),
                                                                    ("checkouts", 123)])
-    async def test_update_name(self, attribute_to_change: str, value_to_set: int | str | bool | None):
+    async def test_update_name(self, attribute_to_change, value_to_set):
         mint_name = f"{BASE_NAME}{random.randint(10 ** 0, 10 ** 20)}"
         mint = await Mint(name=mint_name)
         mint.__setattr__(attribute_to_change, value_to_set)

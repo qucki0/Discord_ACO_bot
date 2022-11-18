@@ -27,7 +27,7 @@ class TestMember:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("attribute_to_change, value_to_set", [("name", "NEW_TEST_NAME"), ("ticket_id", 987654321)])
-    async def test_update_info(self, attribute_to_change: str, value_to_set: int | str | None):
+    async def test_update_info(self, attribute_to_change, value_to_set):
         member_id = random.randint(10 ** 17, 10 ** 18)
         member = await Member(id=member_id, name=BASE_NAME)
         await update_member(member, **{attribute_to_change: value_to_set})
@@ -38,7 +38,7 @@ class TestMember:
     @pytest.mark.parametrize("new_name", ["ANOTHER_TEST", "small_test", "New Name", "другой язык",
                                           "\u4efb\u4f55\u5b57\u7b26\u4e32\u5728\u4e2d\u570b", "emoji_test🙃",
                                           "", "very  long  test nickname same as max nickname length on discord"])
-    async def test_update_name(self, new_name: str):
+    async def test_update_name(self, new_name):
         member_id = random.randint(10 ** 17, 10 ** 18)
         member = await Member(id=member_id, name=BASE_NAME)
         member.name = new_name
@@ -48,7 +48,7 @@ class TestMember:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("new_ticket_ids", [(1234,), (1234, None)])
-    async def test_update_ticket_id(self, new_ticket_ids: list[int]):
+    async def test_update_ticket_id(self, new_ticket_ids):
         member_id = random.randint(10 ** 17, 10 ** 18)
         member = await Member(id=member_id, name=BASE_NAME)
         for new_ticket_id in new_ticket_ids:
