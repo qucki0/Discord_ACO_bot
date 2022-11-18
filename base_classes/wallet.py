@@ -60,7 +60,7 @@ async def get_member_wallets_for_mint(member_id: int, mint_id: int) -> list[Wall
     return wallets
 
 
-async def add_wallets_to_mint(wallets_to_add: list[str], mint: Mint, member_id: int) -> str:
+async def add_wallets_to_mint(wallets_to_add: list[str], mint: Mint, member_id: int) -> (list[str], list[str], int):
     not_private_keys = []
     already_exist_keys = []
     added_wallets = []
@@ -79,8 +79,7 @@ async def add_wallets_to_mint(wallets_to_add: list[str], mint: Mint, member_id: 
 
     mint.wallets_limit -= len(added_wallets)
     logger.debug(f"Member {member_id} added {len(added_wallets)} wallets for {mint.name.upper()}")
-    response = add_wallets_response(not_private_keys, already_exist_keys, len(added_wallets))
-    return response
+    return not_private_keys, already_exist_keys, len(added_wallets)
 
 
 def add_wallets_response(not_private_keys: list[str], already_exist_keys: list[str], added_wallets: int) -> str:

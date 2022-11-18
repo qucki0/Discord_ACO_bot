@@ -1,7 +1,7 @@
 import discord
 
 from base_classes.mint import Mint
-from base_classes.wallet import add_wallets_to_mint
+from base_classes.wallet import add_wallets_to_mint, add_wallets_response
 from utilities.logging import get_logger
 from utilities.strings import get_wallets_from_string
 
@@ -32,7 +32,8 @@ class SendWalletsView(discord.ui.View):
             await interaction.followup.send(
                 f"There are only {self.mint.wallets_limit} spots left for `{self.mint.id}`")
             return
-        response = await add_wallets_to_mint(wallets, self.mint, self.member_id)
+        wallets_data = await add_wallets_to_mint(wallets, self.mint, self.member_id)
+        response = add_wallets_response(*wallets_data)
         await send_wallets_modal.interaction.followup.send(response)
         self.disable_buttons()
         await self.original_interaction.edit_original_response(view=self)
