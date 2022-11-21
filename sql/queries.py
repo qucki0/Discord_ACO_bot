@@ -13,6 +13,7 @@ create_table_mints = """
         `timestamp` BIGINT,
         `link` VARCHAR(255),
         `wallets_limit` INT NOT NULL,
+        `chain` VARCHAR(50) NOT NULL DEFAULT 'sol',
         `checkouts` INT NOT NULL DEFAULT '0',
         `valid` BOOLEAN NOT NULL DEFAULT true,
         PRIMARY KEY (`id`, `name`)

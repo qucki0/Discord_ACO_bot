@@ -3,7 +3,7 @@ from typing import Literal
 import discord
 from discord import app_commands
 
-from base_classes.mint import add_mint_to_mints_list, get_mint_by_name, get_all_mints
+from base_classes.mint import add_mint_to_mints_list, get_mint_by_name, get_all_mints, Chains
 from my_discord.autocomplete import release_id_autocomplete
 from my_discord.checkers import admin_checker
 from setup import config
@@ -23,8 +23,8 @@ class AdminMints(app_commands.Group):
                            link="Mint link",
                            timestamp="Drop timestamp")
     async def add_mint(self, interaction: discord.Interaction, release_name: str, wallets_limit: int, link: str = None,
-                       timestamp: int = None) -> None:
-        await add_mint_to_mints_list(interaction, release_name, link, timestamp, wallets_limit)
+                       timestamp: int = None, chain: Literal[Chains.tuple()] = "sol") -> None:
+        await add_mint_to_mints_list(interaction, release_name, link, timestamp, wallets_limit, chain)
 
     @app_commands.command(name="change-info", description="ADMIN COMMAND Change mint [id, link, time or wallets limit]")
     @app_commands.check(admin_checker)

@@ -4,7 +4,7 @@ import enum
 import sql.commands
 from base_classes.base import PropertyModel
 from base_classes.mint import Mint
-from blockchains.solana.functions import is_hash_length_correct
+from blockchains.handlers import is_private_key_correct
 from utilities.logging import get_logger
 from utilities.strings import get_wallets_from_string
 from .errors import WalletsNotExist
@@ -29,12 +29,12 @@ class DeleteWalletStatus(enum.Enum):
     not_exist = 2
 
 
-async def create_wallet(private_key: str, mint_id: int, member_id: int) -> AddWalletStatus:
-    if not is_hash_length_correct(private_key):
+async def create_wallet(private_key: str, mint: Mint, member_id: int) -> AddWalletStatus:
+    if not is_private_key_correct(private_key, mint):
         return AddWalletStatus.not_private_key
-    if await is_wallet_exists(private_key, mint_id):
+    if await is_wallet_exists(private_key, mint.id):
         return AddWalletStatus.already_exist
-    await sql.commands.add.wallet({"private_key": private_key, "mint_id": mint_id, "member_id": member_id})
+    await sql.commands.add.wallet({"private_key": private_key, "mint_id": mint.id, "member_id": member_id})
     return AddWalletStatus.valid
 
 
@@ -65,7 +65,7 @@ async def add_wallets_to_mint(wallets_to_add: list[str], mint: Mint, member_id: 
     already_exist_keys = []
     added_wallets = []
 
-    tasks = [asyncio.create_task(create_wallet(wallet, mint.id, member_id)) for wallet in wallets_to_add]
+    tasks = [asyncio.create_task(create_wallet(wallet, mint, member_id)) for wallet in wallets_to_add]
     await asyncio.gather(*tasks)
 
     for index, status in enumerate(tasks):

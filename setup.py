@@ -1,9 +1,8 @@
 from base_classes.config import ConfigClass
-from blockchains.solana.client import SolanaClient
-from sql.client import SqlClient
 
 
 async def start_sql_client() -> None:
+    from sql.client import SqlClient
     sql_client = SqlClient(user=config.sql_data.user,
                            password=config.sql_data.password,
                            db_name=config.sql_data.db_name,
@@ -13,4 +12,3 @@ async def start_sql_client() -> None:
 
 
 config = ConfigClass.parse_file("config.json")
-solana_client = SolanaClient(config.blockchains.solana.rpc_link)

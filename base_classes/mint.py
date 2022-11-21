@@ -1,11 +1,21 @@
+import enum
+
 import discord
 
 import sql.commands
 from base_classes.base import PropertyModel, AsyncObject
 from utilities.logging import get_logger
-from .errors import MintNotExist, MintAlreadyExist
+from .errors import MintNotExist, MintAlreadyExist, ChainNotSupported
 
 logger = get_logger(__name__)
+
+
+class Chains(enum.Enum):
+    solana = "sol"
+
+    @classmethod
+    def tuple(cls):
+        return tuple(map(lambda c: c.value, cls))
 
 
 class Mint(PropertyModel, AsyncObject):
@@ -16,6 +26,7 @@ class Mint(PropertyModel, AsyncObject):
     link_: str = None
     checkouts_: int = 0
     valid_: bool = True
+    chain: str = Chains.solana.value
 
     async def __ainit__(self, *args, **kwargs):
         if not await is_mint_exist(mint_name=self.name):
@@ -140,11 +151,13 @@ async def get_actual_mints() -> list[Mint]:
 
 
 async def add_mint_to_mints_list(interaction: discord.Interaction, release_name: str, link: str = None,
-                                 timestamp: int = None, wallets_limit: int = 10) -> None:
+                                 timestamp: int = None, wallets_limit: int = 10, chain: str = "sol") -> None:
     if await is_mint_exist(mint_name=release_name):
         raise MintAlreadyExist(release_name)
+    if chain not in Chains.tuple():
+        raise ChainNotSupported()
     logger.debug(f"Adding mint {release_name=}, {link=}, {timestamp=}, {wallets_limit}")
-    mint = await Mint(name=release_name, link=link, timestamp=timestamp, wallets_limit=wallets_limit)
+    mint = await Mint(name=release_name, link=link, timestamp=timestamp, wallets_limit=wallets_limit, chain=chain)
 
     from setup import config
     await interaction.client.get_channel(config.ids.channels.alert_channel_id).send("New mint found",

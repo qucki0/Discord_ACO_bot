@@ -48,3 +48,12 @@ def get_sql_str_from_dict(data_to_change: dict[str: int | str], separator: str, 
             case None:
                 changes.append(f"{key} = NULL")
     return separator.join(changes)
+
+
+def get_transaction_hash_from_string(transaction: str, is_hash_correct_function: callable) -> str:
+    if "/" in transaction:
+        for possible_hash in transaction.split("/"):
+            possible_hash = possible_hash.strip()
+            if is_hash_correct_function(possible_hash):
+                return possible_hash
+    return transaction.strip()

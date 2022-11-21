@@ -2,7 +2,6 @@ import discord
 from discord import app_commands
 
 from base_classes.transaction import get_transaction
-from blockchains.solana.functions import get_transaction_hash_from_string, is_hash_length_correct
 from my_discord import embeds
 from my_discord.checkers import owner_checker
 from utilities.logging import get_logger
@@ -17,8 +16,5 @@ class OwnerCheckers(app_commands.Group):
     @app_commands.check(owner_checker)
     @app_commands.describe(transaction_hash="Hash to check")
     async def check_transaction(self, interaction: discord.Interaction, transaction_hash: str) -> None:
-        transaction_hash = get_transaction_hash_from_string(transaction_hash)
-        if not is_hash_length_correct(transaction_hash):
-            await interaction.response.send_message("Wrong input.", ephemeral=True)
         tx = await get_transaction(transaction_hash)
         await interaction.response.send_message(embed=embeds.transaction_info(tx))

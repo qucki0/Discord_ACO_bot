@@ -23,3 +23,7 @@ class WalletsNotExist(Exception):
 
 class TransactionNotExist(Exception):
     pass
+
+
+class ChainNotSupported(Exception):
+    pass

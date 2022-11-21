@@ -41,7 +41,9 @@ class AppCommandsErrorsHandler:
             case WalletsNotExist():
                 return "No wallets for this mint"
             case TransactionNotExist():
-                return "Transaction not found"
+                return "Transaction not found. Note: you must use transaction hash instead of link to block scanner"
+            case ChainNotSupported():
+                return "This chain is not supported yet"
             case _:
                 logger.exception(f"{interaction.user} {interaction.user.id} got error \n {error}")
                 return "An unexpected error occurred, try again. If that doesn't work, ping the admin"

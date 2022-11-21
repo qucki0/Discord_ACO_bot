@@ -30,7 +30,7 @@ class SendWalletsView(discord.ui.View):
 
         if self.mint.wallets_limit < len(wallets):
             await interaction.followup.send(
-                f"There are only {self.mint.wallets_limit} spots left for `{self.mint.id}`")
+                f"There are only {self.mint.wallets_limit} spots left for `{self.mint.name}`")
             return
         wallets_data = await add_wallets_to_mint(wallets, self.mint, self.member_id)
         response = add_wallets_response(*wallets_data)

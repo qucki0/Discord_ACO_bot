@@ -2,6 +2,7 @@ import discord
 from discord import app_commands
 
 from base_classes.member import get_member_by_user
+from base_classes.mint import get_mint_by_name
 from base_classes.payment import get_payment, check_checkouts_to_pay_correct
 from my_discord import embeds
 from my_discord.autocomplete import unpaid_release_ids_autocomplete
@@ -25,8 +26,9 @@ class Payments(app_commands.Group):
         member_id = interaction.user.id
         member = await get_member_by_user(interaction.user)
         payment = await get_payment(release_name, member_id)
+        mint = await get_mint_by_name(release_name)
         check_checkouts_to_pay_correct(checkouts_quantity, payment)
-        view = SubmitTransactionView(interaction, member, release_name, checkouts_quantity)
+        view = SubmitTransactionView(interaction, member, mint, checkouts_quantity)
         await interaction.followup.send("Please send $SOL to address in message below and click on button",
                                         view=view)
         view.wallet_message = await interaction.channel.send(config.blockchains.solana.payment_wallet)

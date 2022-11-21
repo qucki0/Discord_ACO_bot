@@ -41,49 +41,49 @@ class TestWallets:
                                                                                        AddWalletStatus.not_private_key)]
                              )
     async def test_create_wallet(self, test_member, test_mint, private_key, excepted_status):
-        status = await create_wallet(private_key, test_mint.id, test_member.id)
+        status = await create_wallet(private_key, test_mint, test_member.id)
         assert status == excepted_status
 
     @pytest.mark.asyncio
     async def test_check_wallet_exist(self, member, mint):
-        status = await create_wallet(VALID_PRIVATE_KEY, mint.id, member.id)
+        status = await create_wallet(VALID_PRIVATE_KEY, mint, member.id)
         assert status == AddWalletStatus.valid
         assert await is_wallet_exists(VALID_PRIVATE_KEY, mint.id)
 
     @pytest.mark.asyncio
     async def test_delete_wallet(self, member, mint):
-        add_status = await create_wallet(VALID_PRIVATE_KEY, mint.id, member.id)
+        add_status = await create_wallet(VALID_PRIVATE_KEY, mint, member.id)
         assert add_status == AddWalletStatus.valid
         delete_status = await delete_wallet(VALID_PRIVATE_KEY, mint.id)
         assert delete_status == DeleteWalletStatus.deleted
 
     @pytest.mark.asyncio
     async def test_get_wallets_for_mint(self, member, mint):
-        await create_wallet(VALID_PRIVATE_KEY, mint.id, member.id)
+        await create_wallet(VALID_PRIVATE_KEY, mint, member.id)
         all_wallets = await get_wallets_for_mint(mint.id)
         first_wallet = Wallet(private_key=VALID_PRIVATE_KEY, mint_id=mint.id, member_id=member.id)
         assert all_wallets == [first_wallet]
-        await create_wallet(ANOTHER_VALID_PRIVATE_KEY, mint.id, member.id)
+        await create_wallet(ANOTHER_VALID_PRIVATE_KEY, mint, member.id)
         second_wallet = Wallet(private_key=ANOTHER_VALID_PRIVATE_KEY, mint_id=mint.id, member_id=member.id)
         all_wallets = await get_wallets_for_mint(mint.id)
         assert all_wallets == [first_wallet, second_wallet] or all_wallets == [second_wallet, first_wallet]
 
     @pytest.mark.asyncio
     async def test_get_member_wallet(self, member, mint):
-        await create_wallet(VALID_PRIVATE_KEY, mint.id, member.id)
+        await create_wallet(VALID_PRIVATE_KEY, mint, member.id)
         all_wallets = await get_member_wallets_for_mint(member.id, mint.id)
         first_wallet = Wallet(private_key=VALID_PRIVATE_KEY, mint_id=mint.id, member_id=member.id)
         assert all_wallets == [first_wallet]
-        await create_wallet(ANOTHER_VALID_PRIVATE_KEY, mint.id, member.id)
+        await create_wallet(ANOTHER_VALID_PRIVATE_KEY, mint, member.id)
         second_wallet = Wallet(private_key=ANOTHER_VALID_PRIVATE_KEY, mint_id=mint.id, member_id=member.id)
         all_wallets = await get_member_wallets_for_mint(member.id, mint.id)
         assert all_wallets == [first_wallet, second_wallet] or all_wallets == [second_wallet, first_wallet]
 
     @pytest.mark.asyncio
     async def test_add_wallet_twice(self, member, mint):
-        status = await create_wallet(VALID_PRIVATE_KEY, mint.id, member.id)
+        status = await create_wallet(VALID_PRIVATE_KEY, mint, member.id)
         assert status == AddWalletStatus.valid
-        status = await create_wallet(VALID_PRIVATE_KEY, mint.id, member.id)
+        status = await create_wallet(VALID_PRIVATE_KEY, mint, member.id)
         assert status == AddWalletStatus.already_exist
 
     @pytest.mark.asyncio
