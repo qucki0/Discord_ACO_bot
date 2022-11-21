@@ -1,4 +1,5 @@
 import asyncio
+import random
 
 import pytest
 import pytest_asyncio
@@ -16,13 +17,15 @@ ANOTHER_VALID_PRIVATE_KEY = "5Hdw8NtNANFTc2QZTA7qQhUTWNzxLi1UwT6b4vkZabTE89LvBkj
 
 @pytest_asyncio.fixture(scope="function")
 async def mint():
-    m = await Mint(name="some mint name", wallets_limit=100)
+    mint_name = f"mint_name{random.randint(10 ** 0, 10 ** 20)}"
+    m = await Mint(name=mint_name, wallets_limit=100)
     yield m
 
 
 @pytest_asyncio.fixture(scope="function")
 async def member():
-    m = await Member(id=1, name="some_name")
+    member_name = f"member_name{random.randint(10 ** 0, 10 ** 20)}"
+    m = await Member(id=random.randint(10 ** 0, 10 ** 18), name=member_name)
     yield m
 
 
