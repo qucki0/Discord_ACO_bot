@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 import pytest_asyncio
 from pytest_lazyfixture import lazy_fixture
@@ -43,7 +45,7 @@ class TestWallets:
     async def test_check_wallet_exist(self, member, mint):
         status = await create_wallet(VALID_PRIVATE_KEY, mint.id, member.id)
         assert status == AddWalletStatus.valid
-        assert is_wallet_exists(VALID_PRIVATE_KEY, 1)
+        assert await is_wallet_exists(VALID_PRIVATE_KEY, mint.id)
 
     @pytest.mark.asyncio
     async def test_delete_wallet(self, member, mint):
@@ -91,6 +93,7 @@ class TestWallets:
         wallets_limit_before_adding = mint.wallets_limit
         wallets = [VALID_PRIVATE_KEY, ANOTHER_VALID_PRIVATE_KEY, "Not valid key"]
         not_private_keys, already_exist_keys, added_amount = await add_wallets_to_mint(wallets, mint, member.id)
+        await asyncio.sleep(0.25)
         assert added_amount == 2
         assert len(not_private_keys) == 1
         assert not_private_keys[0] == "Not valid key"
