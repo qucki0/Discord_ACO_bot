@@ -19,3 +19,7 @@ class MintAlreadyExist(Exception):
 
 class WalletsNotExist(Exception):
     pass
+
+
+class TransactionNotExist(Exception):
+    pass

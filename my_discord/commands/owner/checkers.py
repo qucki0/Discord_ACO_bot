@@ -21,7 +21,4 @@ class OwnerCheckers(app_commands.Group):
         if not is_hash_length_correct(transaction_hash):
             await interaction.response.send_message("Wrong input.", ephemeral=True)
         tx = await get_transaction(transaction_hash)
-        if tx is not None:
-            await interaction.response.send_message(embed=embeds.transaction_info(tx))
-        else:
-            await interaction.response.send_message("Transaction not found")
+        await interaction.response.send_message(embed=embeds.transaction_info(tx))

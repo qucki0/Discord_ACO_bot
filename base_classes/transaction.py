@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 import sql.commands
 from base_classes.base import AsyncObject
+from base_classes.errors import PaymentNotExist
 
 
 class Transaction(BaseModel, AsyncObject):
@@ -25,7 +26,7 @@ async def is_transaction_exist(tx_hash: str) -> bool:
 
 async def get_transaction(tx_hash: str) -> Transaction | None:
     if not await is_transaction_exist(tx_hash):
-        return None
+        raise PaymentNotExist
     return Transaction.parse_obj(await sql.commands.get.transaction(tx_hash))
 
 
