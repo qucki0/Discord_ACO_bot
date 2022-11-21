@@ -40,3 +40,8 @@ def is_private_key_correct(private_key: str, mint: Mint) -> bool:
 def is_transaction_hash_correct(transaction_hash: str, mint: Mint) -> bool:
     handler = handlers_factory.get_handler_by_mint(mint)
     return handler.is_transaction_hash_correct(transaction_hash)
+
+
+def get_payment_wallet(mint: Mint):
+    handler = handlers_factory.get_handler_by_mint(mint)
+    return handler.get_payment_wallet()

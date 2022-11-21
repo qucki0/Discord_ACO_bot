@@ -10,13 +10,16 @@ colour = discord.Colour.from_str(config.base_colour)
 
 
 def mint_data(mint: Mint) -> discord.Embed:
-    embed = discord.Embed(title=f":bell:{mint.name}", colour=colour)
+    embed = discord.Embed(title=f":bell:{mint.name}", colour=discord.Colour.red())
     if mint.link is not None:
         embed.add_field(name="Link:", value=mint.link)
     if mint.timestamp is not None:
         embed.add_field(name="Time:", value=f"<t:{mint.timestamp}>")
+    if len(embed.fields):
+        embed.add_field(name="\u200b", value='\u200b', inline=False)
     if mint.wallets_limit is not None:
-        embed.add_field(name="Spots left:", value=str(mint.wallets_limit), inline=False)
+        embed.add_field(name="Spots left:", value=str(mint.wallets_limit))
+    embed.add_field(name="Chain:", value=mint.chain)
     embed.set_footer(text="Take your ACO in ticket")
     return embed
 

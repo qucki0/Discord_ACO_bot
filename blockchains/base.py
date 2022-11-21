@@ -43,3 +43,7 @@ class AbstractHandler(ABC):
     @abstractmethod
     def get_possible_transaction_hash_from_string(self, some_hash: str) -> str:
         ...
+
+    @abstractmethod
+    def get_payment_wallet(self) -> str:
+        ...

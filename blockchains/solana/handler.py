@@ -1,3 +1,4 @@
+from setup import config
 from utilities.logging import get_logger
 from utilities.strings import get_transaction_hash_from_string
 from .checkers import *
@@ -44,3 +45,6 @@ class SolanaHandler(AbstractHandler):
 
     def get_possible_transaction_hash_from_string(self, some_hash: str) -> str:
         return get_transaction_hash_from_string(some_hash, self.is_private_key_correct)
+
+    def get_payment_wallet(self) -> str:
+        return config.blockchains.solana.payment_wallet
