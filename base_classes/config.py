@@ -33,6 +33,7 @@ class Blockchain(BaseModel):
 
 class Blockchains(BaseModel):
     solana: Blockchain
+    ethereum: Blockchain
 
 
 class ConfigClass(BaseModel):

@@ -2,7 +2,8 @@ from base_classes.base import SingletonBase
 from base_classes.mint import Mint, Chains
 from setup import config
 from utilities.logging import get_logger
-from .base import AbstractHandler
+from .abstract_base import AbstractHandler
+from .ethereum_based.handlers import EthereumHandler
 from .solana.handler import SolanaHandler
 
 logger = get_logger(__name__)
@@ -11,11 +12,14 @@ logger = get_logger(__name__)
 class HandlersFactory(SingletonBase):
     def __init__(self):
         self.solana_handler = SolanaHandler(config.blockchains.solana.rpc_link)
+        self.ethereum_handler = EthereumHandler(config.blockchains.ethereum.rpc_link)
 
     def get_handler_by_mint(self, mint: Mint) -> AbstractHandler:
         match mint.chain:
             case Chains.solana.value:
                 return self.solana_handler
+            case Chains.ethereum.value:
+                return self.ethereum_handler
 
 
 handlers_factory = HandlersFactory()
