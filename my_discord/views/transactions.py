@@ -2,7 +2,8 @@ import discord
 
 from base_classes.member import Member
 from base_classes.mint import Mint
-from blockchains.handlers import submit_transaction, get_transaction_hash_from_string
+from blockchains.handlers import submit_transaction, get_transaction_hash_from_string, get_block_scan_base_link, \
+    get_currency_symbol
 from my_discord import embeds
 from utilities.logging import get_logger
 
@@ -32,13 +33,16 @@ class SubmitTransactionView(discord.ui.View):
             await self.wallet_message.delete()
             self.stop()
             tx_hash = get_transaction_hash_from_string(transaction_modal.tx_hash, self.mint)
+        scanner_link = get_block_scan_base_link(self.mint)
         await transaction_modal.interaction.followup.send(
-            embeds=await embeds.transaction_status(status, amount, self.member, tx_hash))
+            embeds=await embeds.transaction_status(status, amount, self.member, tx_hash, scanner_link))
 
     async def on_timeout(self) -> None:
+        currency_symbol = get_currency_symbol(self.mint)
         self.disable_buttons()
         await self.original_interaction.edit_original_response(
-            content="~~Please send $SOL to address in message below and click on button~~\n**EXPIRED, TRY AGAIN**",
+            content=f"~~Please send ${currency_symbol} to address in message below "
+                    f"and click on button~~\n**EXPIRED, TRY AGAIN**",
             view=self
         )
         await self.wallet_message.delete()

@@ -47,3 +47,11 @@ class SolanaHandler(AbstractHandler):
 
     async def get_transaction(self, transaction_hash: str) -> dict | None:
         return self.client.get_transaction(transaction_hash)
+
+    @staticmethod
+    def get_currency_symbol() -> str:
+        return "SOL"
+
+    @staticmethod
+    def get_block_scan_base_link() -> str:
+        return "https://solscan.io/tx/"

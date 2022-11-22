@@ -73,3 +73,13 @@ class AbstractHandler(ABC):
     @abstractmethod
     async def get_transaction(self, transaction_hash: str) -> dict | None:
         ...
+
+    @staticmethod
+    @abstractmethod
+    def get_currency_symbol() -> str:
+        ...
+
+    @staticmethod
+    @abstractmethod
+    def get_block_scan_base_link() -> str:
+        ...

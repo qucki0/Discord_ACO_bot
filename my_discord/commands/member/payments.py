@@ -4,7 +4,7 @@ from discord import app_commands
 from base_classes.member import get_member_by_user
 from base_classes.mint import get_mint_by_name
 from base_classes.payment import get_payment, check_checkouts_to_pay_correct
-from blockchains.handlers import get_payment_wallet
+from blockchains.handlers import get_payment_wallet, get_currency_symbol
 from my_discord import embeds
 from my_discord.autocomplete import unpaid_release_ids_autocomplete
 from my_discord.views.transactions import SubmitTransactionView
@@ -30,7 +30,7 @@ class Payments(app_commands.Group):
         check_checkouts_to_pay_correct(checkouts_quantity, payment)
         view = SubmitTransactionView(interaction, member, mint, checkouts_quantity)
         await interaction.followup.send(
-            f"Please send ${mint.chain.upper()} to address in message below and click on button", view=view)
+            f"Please send ${get_currency_symbol(mint)} to address in message below and click on button", view=view)
         view.wallet_message = await interaction.channel.send(get_payment_wallet(mint))
 
     @app_commands.command(name="check-unpaid", description="Command to check your unpaid successes")

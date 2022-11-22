@@ -49,3 +49,13 @@ def is_transaction_hash_correct(transaction_hash: str, mint: Mint) -> bool:
 def get_payment_wallet(mint: Mint):
     handler = handlers_factory.get_handler_by_mint(mint)
     return handler.get_payment_wallet()
+
+
+def get_currency_symbol(mint: Mint) -> str:
+    handler = handlers_factory.get_handler_by_mint(mint)
+    return handler.get_currency_symbol()
+
+
+def get_block_scan_base_link(mint: Mint) -> str:
+    handler = handlers_factory.get_handler_by_mint(mint)
+    return handler.get_block_scan_base_link()
