@@ -14,12 +14,14 @@ class EthereumHandlerBase(AbstractHandler, ABC):
 
     async def addition_checks(self, transaction_data: dict) -> tuple[str, float]:
         one_wei = 0.000000000000000001
-        if is_gas_limit_correct(transaction_data):
-            return "This transaction is not $ETH transfer", -1
+
         if not is_payment_amount_enough(transaction_data):
             return "Too small payment", -1
         eth_amount = round(int(transaction_data["value"]) * one_wei, 6)
-        return "Payment successful.", eth_amount
+        additional_info = ""
+        if is_gas_limit_correct(transaction_data):
+            additional_info = f" Looks like this transaction is not simple ${self.get_currency_symbol()} transfer"
+        return f"Payment successful.{additional_info}", eth_amount
 
     @staticmethod
     def is_private_key_correct(private_key: str) -> bool:

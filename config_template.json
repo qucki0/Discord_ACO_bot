@@ -27,6 +27,18 @@
     "solana": {
       "payment_wallet": "your_sol_wallet",
       "rpc_link": "sol_rpc"
+    },
+    "ethereum": {
+      "payment_wallet": "your_eth_wallet",
+      "rpc_link": "eth_rpc"
+    },
+    "binance_smart_chain": {
+      "payment_wallet": "your_bsc_wallet",
+      "rpc_link": "https://bsc-dataseed.binance.org/"
+    },
+    "polygon": {
+      "payment_wallet": "your_polygon_wallet",
+      "rpc_link": "https://polygon-rpc.com"
     }
   },
   "sql_data": {

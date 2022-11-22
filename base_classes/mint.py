@@ -13,6 +13,8 @@ logger = get_logger(__name__)
 class Chains(enum.Enum):
     solana = "sol"
     ethereum = "eth"
+    binance_smart_chain = "bsc"
+    polygon = "polygon"
 
     @classmethod
     def tuple(cls):

@@ -3,7 +3,7 @@ from base_classes.mint import Mint, Chains
 from setup import config
 from utilities.logging import get_logger
 from .abstract_base import AbstractHandler
-from .ethereum_based.handlers import EthereumHandler
+from .ethereum_based.handlers import EthereumHandler, BinanceSmartChainHandler, PolygonHandler
 from .solana.handler import SolanaHandler
 
 logger = get_logger(__name__)
@@ -13,6 +13,8 @@ class HandlersFactory(SingletonBase):
     def __init__(self):
         self.solana_handler = SolanaHandler(config.blockchains.solana.rpc_link)
         self.ethereum_handler = EthereumHandler(config.blockchains.ethereum.rpc_link)
+        self.binance_smart_chain_handler = BinanceSmartChainHandler(config.blockchains.binance_smart_chain.rpc_link)
+        self.polygon_handler = PolygonHandler(config.blockchains.polygon.rpc_link)
 
     def get_handler_by_mint(self, mint: Mint) -> AbstractHandler:
         match mint.chain:
@@ -20,6 +22,10 @@ class HandlersFactory(SingletonBase):
                 return self.solana_handler
             case Chains.ethereum.value:
                 return self.ethereum_handler
+            case Chains.binance_smart_chain.value:
+                return self.binance_smart_chain_handler
+            case Chains.polygon.value:
+                return self.polygon_handler
 
 
 handlers_factory = HandlersFactory()

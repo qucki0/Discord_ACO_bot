@@ -34,6 +34,8 @@ class Blockchain(BaseModel):
 class Blockchains(BaseModel):
     solana: Blockchain
     ethereum: Blockchain
+    binance_smart_chain: Blockchain
+    polygon: Blockchain
 
 
 class ConfigClass(BaseModel):
