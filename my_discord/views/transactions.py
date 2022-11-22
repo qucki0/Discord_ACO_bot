@@ -20,21 +20,20 @@ class SubmitTransactionView(discord.ui.View):
         super().__init__(timeout=600)
 
     @discord.ui.button(label="Submit transaction", style=discord.ButtonStyle.green)
-    async def submit_transaction(self, confirm_interaction: discord.Interaction,
-                                 button: discord.ui.Button) -> None:
+    async def submit_transaction(self, confirm_interaction: discord.Interaction, button: discord.ui.Button) -> None:
         transaction_modal = SubmitTransactionModal()
         await confirm_interaction.response.send_modal(transaction_modal)
         await transaction_modal.wait()
 
         tx_hash = transaction_modal.tx_hash
-        status, sol_amount = await submit_transaction(tx_hash, self.member.id, self.mint,
-                                                      self.checkouts_quantity)
-        if sol_amount != -1:
+        status, amount = await submit_transaction(tx_hash, self.member.id, self.mint, self.checkouts_quantity)
+        if amount != -1:
             await self.original_interaction.delete_original_response()
             await self.wallet_message.delete()
+            self.stop()
             tx_hash = get_transaction_hash_from_string(transaction_modal.tx_hash, self.mint)
         await transaction_modal.interaction.followup.send(
-            embeds=await embeds.transaction_status(status, sol_amount, self.member, tx_hash))
+            embeds=await embeds.transaction_status(status, amount, self.member, tx_hash))
 
     async def on_timeout(self) -> None:
         self.disable_buttons()

@@ -3,23 +3,18 @@ from utilities.logging import get_logger
 from utilities.strings import get_transaction_hash_from_string
 from .checkers import *
 from .client import SolanaClient
-from ..base import AbstractHandler
+from ..abstract_base import AbstractHandler
 
 logger = get_logger(__name__)
 
 
 class SolanaHandler(AbstractHandler):
+
     def __init__(self, rpc_link: str):
         self.client = SolanaClient(rpc_link)
         super().__init__()
 
-    async def check_transaction(self, transaction_info: str) -> tuple[str, int]:
-        transaction_hash = get_transaction_hash_from_string(transaction_info, self.is_private_key_correct)
-        if not self.is_private_key_correct(transaction_hash):
-            return "Wrong input.", -1
-        if await is_hash_already_submitted(transaction_hash):
-            return "This transaction already exist.", -1
-        transaction_data = self.client.get_transaction(transaction_hash)
+    async def addition_checks(self, transaction_data: dict) -> tuple[str, int]:
         if not is_transaction_completed(transaction_data):
             return "Transaction isn't confirmed. Wait a bit and try again.", -1
         if is_transaction_completed_with_error(transaction_data):
@@ -27,8 +22,6 @@ class SolanaHandler(AbstractHandler):
             return "Something went wrong. Wait a bit and try again.", -1
         if not is_transaction_sol_transfer(transaction_data):
             return "This transaction isn't a $SOL transfer.", -1
-        if not is_payment_address_correct(transaction_data):
-            return "Wrong payment address.", -1
         balance_before_sending = transaction_data["result"]["meta"]["preBalances"][0]
         balance_after_sending = transaction_data["result"]["meta"]["postBalances"][0]
         transaction_fee = transaction_data["result"]["meta"]["fee"]
@@ -48,3 +41,9 @@ class SolanaHandler(AbstractHandler):
 
     def get_payment_wallet(self) -> str:
         return config.blockchains.solana.payment_wallet
+
+    def is_payment_address_correct(self, transaction_data: dict) -> bool:
+        return self.get_payment_wallet() in transaction_data["result"]["transaction"]["message"]["accountKeys"]
+
+    async def get_transaction(self, transaction_hash: str) -> dict | None:
+        return self.client.get_transaction(transaction_hash)
