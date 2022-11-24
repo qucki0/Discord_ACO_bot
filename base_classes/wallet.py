@@ -1,6 +1,8 @@
 import asyncio
 import enum
 
+import pymysql
+
 import sql.commands
 from base_classes.base import PropertyModel
 from base_classes.mint import Mint
@@ -34,7 +36,10 @@ async def create_wallet(private_key: str, mint: Mint, member_id: int) -> AddWall
         return AddWalletStatus.not_private_key
     if await is_wallet_exists(private_key, mint.id):
         return AddWalletStatus.already_exist
-    await sql.commands.add.wallet({"private_key": private_key, "mint_id": mint.id, "member_id": member_id})
+    try:
+        await sql.commands.add.wallet({"private_key": private_key, "mint_id": mint.id, "member_id": member_id})
+    except pymysql.err.IntegrityError:
+        return AddWalletStatus.already_exist
     return AddWalletStatus.valid
 
 
