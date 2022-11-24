@@ -36,6 +36,7 @@ class Blockchains(BaseModel):
     ethereum: Blockchain
     binance_smart_chain: Blockchain
     polygon: Blockchain
+    aptos: Blockchain
 
 
 class ConfigClass(BaseModel):

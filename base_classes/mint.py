@@ -15,6 +15,7 @@ class Chains(enum.Enum):
     ethereum = "eth"
     binance_smart_chain = "bsc"
     polygon = "polygon"
+    aptos = "apt"
 
     @classmethod
     def tuple(cls):
