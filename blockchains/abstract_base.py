@@ -32,7 +32,7 @@ class AbstractHandler(ABC):
         return status, paid_amount
 
     async def check_transaction(self, transaction_hash: str) -> tuple[str, float]:
-        if not self.is_private_key_correct(transaction_hash):
+        if not self.is_transaction_hash_correct(transaction_hash):
             return "Wrong input.", -1
         if await self.is_hash_already_submitted(transaction_hash):
             return "This transaction already exist.", -1
